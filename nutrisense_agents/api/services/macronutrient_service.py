@@ -20,7 +20,15 @@ from nutrisense_agents.ai_companion.schemas.macronutrient_schema import (
     ActivityLevel,
     Goal
 )
-from nutrisense_agents.db.supabase.client import get_supabase_client
+
+# Manejo opcional de Supabase - no rompe si no está configurado
+try:
+    from nutrisense_agents.db.supabase.client import get_supabase_client
+except ImportError:
+    def get_supabase_client():
+        """Mock function when Supabase is not available"""
+        print("Warning: Supabase client not available. Using local mode only.")
+        return None
 
 # Inicializar la cadena de procesamiento
 extraction_chain = get_macronutrient_extraction_chain()
@@ -173,7 +181,7 @@ def extract_macronutrients_service(
             "food_diary_id": food_diary_id,
             "photo_analysis_id": photo_analysis_id,
             "ingredient_ids": ingredient_ids,
-            "extracted_macronutrients": [extraction.dict() for extraction in macronutrient_extractions],
+            "extracted_macronutrients": [extraction.model_dump() for extraction in macronutrient_extractions],
             "total_nutrition": {
                 "calories": total_calories,
                 "protein": total_protein,
@@ -269,7 +277,7 @@ def extract_macronutrients_local_test(
             "food_diary_id": f"local_test_{user_id}_{meal_type}",
             "photo_analysis_id": None,
             "ingredient_ids": [f"local_ingredient_{i}" for i in range(len(ingredients))],
-            "extracted_macronutrients": [extraction.dict() for extraction in macronutrient_extractions],
+            "extracted_macronutrients": [extraction.model_dump() for extraction in macronutrient_extractions],
             "total_nutrition": {
                 "calories": total_calories,
                 "protein": total_protein,
@@ -356,7 +364,7 @@ def extract_macronutrients_with_context_service(
             return {
                 "success": True,
                 "mode": "full",
-                "contextualized_analysis": contextualized_analysis.dict(),
+                "contextualized_analysis": contextualized_analysis.model_dump(),
                 "database_records": db_result,
                 "message": "Análisis contextualizado completado y guardado en base de datos"
             }
@@ -365,7 +373,7 @@ def extract_macronutrients_with_context_service(
             return {
                 "success": True,
                 "mode": "local",
-                "contextualized_analysis": contextualized_analysis.dict(),
+                "contextualized_analysis": contextualized_analysis.model_dump(),
                 "message": "Análisis contextualizado completado (modo local)"
             }
             
@@ -601,7 +609,7 @@ def extract_macronutrients_contextualized_local_test(
         return {
             "success": True,
             "mode": "LOCAL_CONTEXTUALIZED_TEST",
-            "contextualized_analysis": contextualized_analysis.dict(),
+            "contextualized_analysis": contextualized_analysis.model_dump(),
             "message": f"✅ PRUEBA LOCAL CONTEXTUALIZADA: Análisis completo realizado (sin guardar en BD)",
             "note": "Esta es una prueba local contextualizada. Los datos NO se guardaron en la base de datos."
         }
