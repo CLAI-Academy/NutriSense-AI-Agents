@@ -8,5 +8,7 @@ class Settings(BaseSettings):
     ANTHROPIC_API_KEY: str
     ANTHROPIC_MODEL: str
     OPENAI_MODEL: str
+    SUPABASE_URL: str
+    SUPABASE_SERVICE_ROLE_KEY: str
 
 settings = Settings()
