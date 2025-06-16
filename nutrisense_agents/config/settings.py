@@ -8,5 +8,9 @@ class Settings(BaseSettings):
     ANTHROPIC_API_KEY: str
     ANTHROPIC_MODEL: str
     OPENAI_MODEL: str
+    
+    #Groq settings
+    GROQ_API_KEY: str
+    GROQ_MODEL: str
 
 settings = Settings()
