@@ -1,132 +1,146 @@
 # Plan de Alimentación Personalizado
 
-Este plan está diseñado para ayudarte a alcanzar tu objetivo de perder peso de manera saludable y sostenible. Está adaptado a tus gustos, estilo de vida y necesidades nutricionales.
+## Objetivo: Perder Peso
 
-## Desayuno
+### Descripción
 
-**Grupos de alimentos (elegir una opción de cada uno):**
+Este plan de alimentación está diseñado para ayudarte a perder peso de manera saludable y sostenible. Se basa en tus preferencias, objetivos y estilo de vida. A continuación, te presentamos un plan diario que incluye 4 comidas principales y opciones de colaciones.
 
-**Proteínas:**
-- 3 huevos revueltos (150g)
-- 1 tazón de avena cocida con leche descremada (250ml)
-- 1 tazón de yogur griego natural (200g)
+### Comidas Principales
 
-**Hidratos de carbono:**
-- 1 rebanada de pan integral (30g)
-- 1 taza de frutas frescas (100g)
-- 1/2 taza de avena cruda (50g)
+#### Desayuno
 
-**Frutas (opcional):**
-- 1 manzana mediana (150g)
-- 1 plátano mediano (100g)
+Grupos de alimentos (elegir una opción de cada uno):
 
-**Grasas saludables (opcional):**
-- 1 cucharada de mantequilla de maní (15g)
-- 1 cucharadita de aceite de oliva (5g)
+* Proteínas (elegir una opción):
+  * 2 huevos duros (140g)
+  * 1 taza de yogur griego (200g)
+  * 1 rebanada de pechuga de pollo (100g)
 
-**Ejemplos de combinaciones:**
-- Huevos revueltos con espinacas + 1 rebanada de pan integral + 1 manzana.
-- Avena cocida con leche descremada + plátano en rodajas + 1 cucharada de mantequilla de maní.
-- Yoghur griego natural con frutas frescas + 1/2 taza de avena cruda.
+* Hidratos de carbono (elegir una opción):
+  * 1 taza de avena cocida (150g)
+  * 1 rebanada de pan integral (80g)
+  * 1 taza de frutas frescas (100g)
 
-## Almuerzo
+* Grasas saludables (elegir una opción):
+  * 1 cucharada de aceite de oliva (15g)
+  * 1 rebanada de aguacate (100g)
 
-**Grupos de alimentos (elegir una opción de cada uno):**
+* Frutas (elegir una opción):
+  * 1 manzana (150g)
+  * 1 plátano (100g)
 
-**Proteínas:**
-- 150g de pechuga de pollo a la plancha
-- 150g de salmón a la plancha
-- 1 tazón de lentejas cocidas (150g)
+* Vegetales (elegir una opción):
+  * 1 taza de espinacas frescas (50g)
+  * 1 taza de zanahorias frescas (50g)
 
-**Hidratos de carbono:**
-- 1 taza de arroz integral cocido (150g)
-- 1 taza de quinoa cocida (150g)
-- 1 batata mediana (150g)
+Ejemplos de combinación:
 
-**Vegetales:**
-- 1 taza de brócoli al vapor (100g)
-- 1 taza de ensalada de lechuga, tomate y pepino (100g)
-- 1 zanahoria mediana rallada (100g)
+* Huevos duros con avena cocida y espinacas frescas
+* Yogur griego con frutas frescas y zanahorias frescas
 
-**Grasas saludables (opcional):**
-- 1 cucharadita de aceite de oliva (5g)
-- 1 cucharada de aguacate (15g)
+#### Almuerzo
 
-**Ejemplos de combinaciones:**
-- Pechuga de pollo a la plancha + arroz integral + ensalada de lechuga, tomate y pepino.
-- Salmón a la plancha + quinoa + brócoli al vapor.
-- Lentejas cocidas + batata asada + zanahoria rallada.
+Grupos de alimentos (elegir una opción de cada uno):
 
-## Merienda
+* Proteínas (elegir una opción):
+  * 1 rebanada de pechuga de pollo (100g)
+  * 1 taza de lentejas cocidas (200g)
+  * 1 rebanada de salmón (100g)
 
-**Grupos de alimentos (elegir una opción de cada uno):**
+* Hidratos de carbono (elegir una opción):
+  * 1 taza de arroz integral cocido (150g)
+  * 1 rebanada de pan integral (80g)
+  * 1 taza de frutas frescas (100g)
 
-**Proteínas:**
-- 1 huevo duro (50g)
-- 1 tazón de yogur griego natural (200g)
-- 1 cucharada de mantequilla de maní (15g)
+* Grasas saludables (elegir una opción):
+  * 1 cucharada de aceite de oliva (15g)
+  * 1 rebanada de aguacate (100g)
 
-**Hidratos de carbono:**
-- 1 manzana mediana (150g)
-- 1 plátano mediano (100g)
-- 1 taza de frutas frescas (100g)
+* Frutas (elegir una opción):
+  * 1 manzana (150g)
+  * 1 plátano (100g)
 
-**Frutas (opcional):**
-- 1 pera mediana (150g)
-- 1 naranja mediana (150g)
+* Vegetales (elegir una opción):
+  * 1 taza de espinacas frescas (50g)
+  * 1 taza de zanahorias frescas (50g)
 
-**Grasas saludables (opcional):**
-- 1 cucharadita de aceite de oliva (5g)
-- 1 cucharada de aguacate (15g)
+Ejemplos de combinación:
 
-**Ejemplos de combinaciones:**
-- Huevo duro + manzana mediana.
-- Yoghur griego natural + plátano mediano.
-- Mantequilla de maní + pera mediana.
+* Pechuga de pollo con arroz integral cocido y espinacas frescas
+* Lentejas cocidas con pan integral y zanahorias frescas
 
-## Cena
+#### Merienda
 
-**Grupos de alimentos (elegir una opción de cada uno):**
+Grupos de alimentos (elegir una opción de cada uno):
 
-**Proteínas:**
-- 150g de pechuga de pollo a la plancha
-- 150g de salmón a la plancha
-- 1 tazón de tofu cocido (150g)
+* Proteínas (elegir una opción):
+  * 1 rebanada de queso bajo en grasa (100g)
+  * 1 rebanada de pechuga de pollo (100g)
+  * 1 taza de yogur griego (200g)
 
-**Hidratos de carbono:**
-- 1 taza de arroz integral cocido (150g)
-- 1 taza de quinoa cocida (150g)
-- 1 batata mediana (150g)
+* Hidratos de carbono (elegir una opción):
+  * 1 taza de frutas frescas (100g)
+  * 1 rebanada de pan integral (80g)
 
-**Vegetales:**
-- 1 taza de brócoli al vapor (100g)
-- 1 taza de ensalada de lechuga, tomate y pepino (100g)
-- 1 zanahoria mediana rallada (100g)
+* Grasas saludables (elegir una opción):
+  * 1 cucharada de aceite de oliva (15g)
+  * 1 rebanada de aguacate (100g)
 
-**Grasas saludables (opcional):**
-- 1 cucharadita de aceite de oliva (5g)
-- 1 cucharada de aguacate (15g)
+* Frutas (elegir una opción):
+  * 1 manzana (150g)
+  * 1 plátano (100g)
 
-**Ejemplos de combinaciones:**
-- Pechuga de pollo a la plancha + arroz integral + ensalada de lechuga, tomate y pepino.
-- Salmón a la plancha + quinoa + brócoli al vapor.
-- Tofu cocido + batata asada + zanahoria rallada.
+Ejemplos de combinación:
 
-## Colaciones (opcionales)
+* Queso bajo en grasa con frutas frescas
+* Pechuga de pollo con pan integral
 
-- 1 fruta (ideal)
-- 1 fruta + 1 opción de proteína (por ejemplo: yogur natural, queso bajo en grasa, huevo duro)
-- Frutos secos en porciones controladas:
-  - 10 nueces
-  - 20 almendras
-  - 5 nueces + 10 almendras
+#### Cena
 
-## Consejos Prácticos
+Grupos de alimentos (elegir una opción de cada uno):
 
-- **Organización:** Si no te gusta cocinar, puedes preparar comidas sencillas como ensaladas o platos a la plancha. Usa recipientes para organizar tus comidas.
-- **Alimentos listos:** Ten siempre listos vegetales cortados, proteínas cocidas y frutas lavadas.
-- **Evitar el picoteo:** Mantén a mano snacks saludables como frutas o frutos secos.
-- **Planificación:** Puedes cocinar de antemano y usar envases para llevar tus comidas preparadas.
-- **Recordatorio:** Este plan no es una dieta, es una estructura para vivir mejor y más saludable.
+* Proteínas (elegir una opción):
+  * 1 rebanada de salmón (100g)
+  * 1 rebanada de pechuga de pollo (100g)
+  * 1 taza de lentejas cocidas (200g)
 
-Espero que este plan te sea útil y te ayude a alcanzar tus objetivos. ¡Éxito en tu camino hacia una alimentación más saludable!
+* Hidratos de carbono (elegir una opción):
+  * 1 taza de arroz integral cocido (150g)
+  * 1 rebanada de pan integral (80g)
+  * 1 taza de frutas frescas (100g)
+
+* Grasas saludables (elegir una opción):
+  * 1 cucharada de aceite de oliva (15g)
+  * 1 rebanada de aguacate (100g)
+
+* Frutas (elegir una opción):
+  * 1 manzana (150g)
+  * 1 plátano (100g)
+
+* Vegetales (elegir una opción):
+  * 1 taza de espinacas frescas (50g)
+  * 1 taza de zanahorias frescas (50g)
+
+Ejemplos de combinación:
+
+* Salmón con arroz integral cocido y espinacas frescas
+* Lentejas cocidas con pan integral y zanahorias frescas
+
+### Colaciones
+
+* 1 fruta (ideal)
+* 1 fruta + 1 opción de proteína (por ejemplo: yogur natural, queso bajo en grasa, huevo duro)
+* Frutos secos en porciones controladas:
+  * 10 nueces
+  * 20 almendras
+  * 5 nueces + 10 almendras
+
+### Consejos Prácticos
+
+* Cómo organizarse si no le gusta cocinar: cocina en grandes cantidades y congelar para futuras comidas
+* Qué tener siempre listo en casa: ingredientes básicos y frutas frescas
+* Tips para evitar el picoteo o comer por ansiedad: beber agua y comer comidas regulares
+* Cómo planificar de a poco: batch cooking y tupper
+
+Recuerda que este plan es personalizado para ti y que debes adaptarlo a tus necesidades y preferencias. ¡Buena suerte en tu camino hacia una alimentación saludable y equilibrada!
