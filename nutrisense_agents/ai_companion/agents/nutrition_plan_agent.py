@@ -1,0 +1,71 @@
+from langchain_core.prompts import ChatPromptTemplate
+from nutrisense_agents.ai_companion.schemas.nutrition_plan_schema import NutritionPlanSchema
+from nutrisense_agents.config.agent_config import get_chat_model
+from nutrisense_agents.ai_companion.prompts.nutrition_plan_prompt import NUTRITION_PLAN_PROMPT
+
+def get_nutrition_plan_agent_chain():
+    model = get_chat_model(model_type="groq", temperature=0.3).with_structured_output(NutritionPlanSchema)
+
+    prompt = ChatPromptTemplate([
+    ("system", NUTRITION_PLAN_PROMPT),
+    ("human", 
+    """
+    Edad: {age}
+    Género: {gender}
+    Peso actual (kg): {weight}
+    Altura (cm): {height}
+    Nivel de actividad física: {activity_level}
+    Objetivo principal: {goal}
+    
+    Preferencias alimentarias: {preferences}
+    Alergias o intolerancias: {allergies}
+    Condiciones médicas: {medical_conditions}
+    
+    Registro de un día promedio:
+    - Desayuno: {breakfast}
+    - Almuerzo: {lunch}
+    - Merienda: {snack}
+    - Cena: {dinner}
+    
+    Contexto laboral y rutina diaria:
+    - Modalidad laboral: {work_mode}
+    - Turnos: {shift_type}
+    - Lugar de almuerzo: {lunch_place}
+    
+    Organización alimentaria:
+    - ¿Quién cocina?: {who_cooks}
+    - ¿Quién hace las compras?: {who_shops}
+    - ¿Cocinás solo para vos?: {cook_for_others}
+    
+    Fin de semana vs semana: {weekend_diff}
+    
+    Habilidades y tiempos para cocinar:
+    - Frecuencia de cocina: {cooking_frequency}
+    - Tiempo disponible: {cooking_time}
+    - Gustos por cocinar: {cooking_likes}
+    - Frecuencia de delivery o ultraprocesados: {ultraprocessed_frequency}
+    
+    Historia del peso:
+    - Peso estable en otras etapas: {weight_history}
+    - Cambios recientes: {weight_changes}
+    - Eventos asociados: {weight_events}
+    
+    Hábitos:
+    - Dificultades actuales: {current_difficulties}
+    - ¿Comés por hambre o emoción?: {emotional_eating}
+    - Snacks/picoteos entre comidas: {snacking}
+    - Consumo de alcohol: {alcohol_intake}
+
+    Objetivos nutricionales diarios:
+    - Calorías objetivo: {daily_calories_target}
+    - Proteína objetivo (g): {daily_protein_target}
+    - Carbohidratos objetivo (g): {daily_carbs_target}
+    - Grasas objetivo (g): {daily_fat_target}
+    - Peso objetivo (kg): {weight_target}
+    """
+    )
+])
+
+    chain = prompt | model
+
+    return chain

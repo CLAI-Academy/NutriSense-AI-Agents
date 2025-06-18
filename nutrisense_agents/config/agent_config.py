@@ -1,5 +1,6 @@
 from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
+from langchain_groq import ChatGroq
 from nutrisense_agents.config.settings import settings
 
 def get_chat_model(model_type: str, temperature: float = 0.7, streaming: bool = False):
@@ -29,6 +30,14 @@ def get_chat_model(model_type: str, temperature: float = 0.7, streaming: bool = 
             timeout=None,
             max_retries=2,
             api_key=settings.ANTHROPIC_API_KEY
+        )
+    elif model_type.lower() == "groq":
+        return ChatGroq(
+            model=settings.GROQ_MODEL,
+            temperature=temperature,
+            streaming=streaming,
+            max_retries=2,
+            api_key=settings.GROQ_API_KEY
         )
     else:
         raise ValueError(f"Tipo de modelo no soportado: {model_type}. Use 'gpt' o 'claude'.")
