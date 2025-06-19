@@ -1,0 +1,305 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# **🏗️ Arquitectura de Base de Datos - Aplicación Nutricional Integrada**
+
+## **🔐 Autenticación y Perfiles**
+
+### **profiles**
+
+```sql
+
+sql
+- id (uuid, PK) → Referencia a auth.users
+- full_name (text)
+- avatar_url (text)
+- date_of_birth (date)
+- height (integer) → cm
+- weight (numeric) → kg
+- Indice de masa corporal (BMI) (numeric)
+- gender (text)
+- activity_level (text) → sedentary, light, moderate, active, very_active
+- created_at (timestamp)
+- updated_at (timestamp)
+
+```
+
+### **user_health_profile**
+
+```sql
+
+sql
+-- user_health_profile
+- id (uuid, PK)
+- user_id (uuid, FK) → profiles.id
+- dietary_preferences (text[]) → vegetarian, vegan, keto, etc
+- health_goals (text[]) → weight_loss, muscle_gain, maintenance
+- allergies (text[])
+- medical_conditions (text[])
+- daily_calories_target (integer)
+- daily_protein_target (numeric)
+- daily_carbs_target (numeric)
+- daily_fat_target (numeric)
+- weight_target (numeric kg)
+- cooking_lifestyle (text) → minimal_prep, batch_cooker, daily_fresh, cooking_enthusiast
+- summary (text) (aqui va la ficha de usuario)
+- nutritional_plan (text) (aqui va el plan nutricional)
+- created_at (timestamp)
+- updated_at (timestamp)
+
+```
+
+## **🥘 Sistema de Ingredientes y Recetas**
+
+### **ingredients**
+
+```sql
+
+sql
+- id (integer, PK, auto-increment)
+- name (text, NOT NULL)
+- default_unit (text) → grams, ml, cups, pieces
+- calories_per_100g (numeric)
+- protein_per_100g (numeric)
+- carbs_per_100g (numeric)
+- fat_per_100g (numeric)
+- fiber_per_100g (numeric)
+- category (text) → vegetables, fruits, proteins, grains, dairy
+- created_at (timestamp)
+
+```
+
+### **recipes**
+
+```sql
+
+sql
+- id (integer, PK, auto-increment)
+- title (text, NOT NULL)
+- description (text)
+- image_url (text)
+- user_id (uuid, nullable) → profiles.id (null = sistema)
+- instructions (text)
+- prep_time (integer) → minutos
+- cook_time (integer) → minutos
+- servings (integer)
+- total_calories (numeric)
+- total_protein (numeric)
+- total_carbs (numeric)
+- total_fat (numeric)
+- meal_type (text) → breakfast, lunch, dinner, snack
+- difficulty_level (text) → easy, medium, hard
+- is_public (boolean, default: false)
+- user_rating (integer) → 1-5
+- health_score (integer) → 1-10
+- created_at (timestamp)
+- updated_at (timestamp)
+
+```
+
+### **recipe_ingredients**
+
+```sql
+
+sql
+- recipe_id (integer, FK) → recipes.id
+- ingredient_id (integer, FK) → ingredients.id
+- quantity (numeric, NOT NULL)
+- unit (text, NOT NULL)
+- PRIMARY KEY (recipe_id, ingredient_id)
+
+```
+
+## **📅 Planificación de Comidas**
+
+### **meal_plans**
+
+```sql
+
+sql
+- id (uuid, PK)
+- user_id (uuid, FK) → profiles.id
+- week_start_date (date) → Lunes de la semana
+- is_active (boolean, default: true)
+- created_at (timestamp)
+- updated_at (timestamp)
+
+```
+
+### **planned_meals**
+
+```sql
+
+sql
+- id (uuid, PK)
+- meal_plan_id (uuid, FK) → meal_plans.id
+- recipe_id (integer, FK) → recipes.id
+- day_of_week (integer) → 0=Lunes, 6=Domingo
+- meal_type (text) → breakfast, lunch, dinner, snack
+- start_time (integer) 
+- servings_planned (numeric, default: 1)
+- created_at (timestamp)
+
+```
+
+## **📝 Registro y Seguimiento (repaso)**
+
+### **food_diary**
+
+```sql
+
+sql
+- id (uuid, PK)
+- user_id (uuid, FK) → profiles.id
+- date (date, NOT NULL)
+- meal_type (text) → breakfast, lunch, dinner, snack
+- recipe_id (integer, nullable, FK) → recipes.id
+- food_name (text) → Si no es receta
+- quantity (numeric, NOT NULL)
+- unit (text, NOT NULL)
+- calories (numeric)
+- protein (numeric)
+- carbs (numeric)
+- fat (numeric)
+- fiber (numeric)
+- notes (text)
+- consumed_at (timestamp, NOT NULL) →  🆕 NUEVO Hora exacta de consumo
+- location_type (text, default: 'unknown') → home, work, restaurant, gym, street, other 🆕 NUEVO Lugar de consumo
+- time_since_last_meal (integer, nullable) → Minutos desde última comida (calculado) 🆕 NUEVO Tiempo entre comidas
+- day_type (text) → 🆕 NUEVO weekday, weekend, holiday
+- eating_context (text, nullable) → 🆕 NUEVO solo, familia, trabajo, social (inferido de ubicación/hora)
+-- 🆕 FEEDBACK OCASIONAL (solo 1 de cada 5 registros)
+- mood_emoji (text, nullable) → 😊, 😐, 😰, 😢, 😴, 🤗 (4-6 opciones) 🆕 NUEVO
+
+- created_at (timestamp)
+
+```
+
+### **food_photo_analysis**
+
+```sql
+
+sql
+- id (uuid, PK)
+- user_id (uuid, FK) → profiles.id
+- image_url (text, NOT NULL)
+- ai_analysis_raw (jsonb) → Respuesta completa de IA
+- detected_foods (jsonb) → Array de alimentos detectados
+- estimated_calories (numeric)
+- estimated_protein (numeric)
+- estimated_carbs (numeric)
+- estimated_fat (numeric)
+- confidence_score (numeric) → 0-1
+- is_verified (boolean, default: false)
+- food_diary_id (uuid, nullable, FK) → Si se añade al diario
+- created_at (timestamp)
+
+```
+
+### **daily_nutrition_summary Permite al agente acceder al estado de progreso**
+
+```sql
+
+sql
+- id (uuid, PK)
+- user_id (uuid, FK) → profiles.id
+- date (date, NOT NULL)
+- total_calories (numeric, default: 0)
+- total_protein (numeric, default: 0)
+- total_carbs (numeric, default: 0)
+- total_fat (numeric, default: 0)
+- total_fiber (numeric, default: 0)
+- target_calories (numeric)
+- target_protein (numeric)
+- target_carbs (numeric)
+- target_fat (numeric)
+- adherence_score (numeric) → % de cumplimiento
+- created_at (timestamp)
+- updated_at (timestamp)
+- UNIQUE(user_id, date)
+
+```
+
+## **🛒 Sistema de Compras e Inventario**
+
+### **user_inventory**
+
+```sql
+
+sql
+- id (integer, PK, auto-increment)
+- user_id (uuid, FK) → profiles.id
+- ingredient_id (integer, FK) → ingredients.id
+- quantity (numeric, NOT NULL, default: 0)
+- unit (text, NOT NULL)
+- expiry_date (date, nullable)
+- location (text) → fridge, pantry, freezer
+- updated_at (timestamp)
+- UNIQUE(user_id, ingredient_id, unit)
+
+```
+
+### **shopping_lists**
+
+```sql
+
+sql
+- id (integer, PK, auto-increment)
+- user_id (uuid, FK) → profiles.id
+- name (text, default: 'Lista de compra')
+- status (text, default: 'open') → open, closed, archived
+- meal_plan_id (uuid, nullable, FK) → meal_plans.id
+- total_estimated_cost (numeric, default: 0)
+- created_at (timestamp)
+- updated_at (timestamp)
+
+```
+
+### **shopping_list_items**
+
+```sql
+
+sql
+- id (integer, PK, auto-increment)
+- shopping_list_id (integer, FK) → shopping_lists.id
+- ingredient_id (integer, FK) → ingredients.id
+- quantity_needed (numeric, NOT NULL)
+- quantity_have (numeric, default: 0) → Del inventario
+- quantity_to_buy (numeric, NOT NULL) → Calculado
+- unit (text, NOT NULL)
+- estimated_price (numeric)
+- is_purchased (boolean, default: false)
+- purchased_at (timestamp, nullable)
+- created_at (timestamp)
+
+```
+
+## **🏆 Gamificación y Streaks**
+
+### daily_targets_tracking
+
+```sql
+sql
+- id (uuid, PK)
+- user_id (uuid, FK) → profiles.id
+- date (date)
+- targets_met (boolean, default: false) -- true si alcanzó TODOS sus targets del día
+- created_at (timestamp)
+- updated_at (timestamp)
+
+```
+
+### user_streak
+
+```sql
+
+- id (uuid, PK)
+- user_id (uuid, FK) → profiles.id
+- current_streak (integer, default: 0) -- días consecutivos alcanzando targets
+- best_streak (integer, default: 0) -- mejor racha histórica
+- last_target_date (date) -- última fecha que alcanzó targets
+- updated_at (timestamp)
+
+```
