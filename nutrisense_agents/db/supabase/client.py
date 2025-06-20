@@ -33,13 +33,13 @@ class SupabaseClient:
     def add_nutritional_plan_to_user_health_profile(self, user_id: UUID, plan: str) -> Dict[str, Any]:
         return self._update_health_profile(user_id, nutritional_plan=plan)
     
-    def add_food_diary(self, user_id: UUID, recipe_id: UUID, data: Dict[str, Any]) -> Dict[str, Any]:
+    def add_food_diary(self, user_id: UUID, data: Dict[str, Any]) -> Dict[str, Any]:
         food_diary_data = {
             "id": str(uuid.uuid4()),
             "user_id": str(user_id),
             "date": data.get("date", ""),
             "meal_type": data.get("meal_type", ""),
-            "recipe_id": str(recipe_id),
+            "recipe_id": str(data.get("recipe_id", "")),
             "food_name": data.get("food_name", ""),
             "quantity": data.get("quantity", 0),
             "unit": data.get("unit", ""),

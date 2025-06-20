@@ -20,10 +20,9 @@ def test_local_macronutrient_extraction():
     
     # Inicializar la cadena de IA
     try:
-        extraction_chain = get_macronutrient_extraction_chain()
-        print("✅ Agente de IA inicializado correctamente")
+        print("✅ Agente de IA listo para inicializar")
     except Exception as e:
-        print(f"❌ Error al inicializar IA: {str(e)}")
+        print(f"❌ Error al configurar IA: {str(e)}")
         print("💡 Verifica que tengas configuradas las API keys en .env")
         return
     
@@ -51,7 +50,8 @@ def test_local_macronutrient_extraction():
         
         try:
             # Llamar a la IA
-            result = extraction_chain.invoke({
+            chain = get_macronutrient_extraction_chain()
+            result = chain.invoke({
                 "ingredients": [ingredient],
                 "meal_type": "almuerzo",
                 "preparation_method": "saludable",

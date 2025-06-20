@@ -30,8 +30,18 @@ except ImportError:
         print("Warning: Supabase client not available. Using local mode only.")
         return None
 
-# Inicializar la cadena de procesamiento
-extraction_chain = get_macronutrient_extraction_chain()
+# Variable global para la cadena de procesamiento (inicialización lazy)
+extraction_chain = None
+
+def get_extraction_chain():
+    """
+    Obtiene la cadena de extracción de macronutrientes de forma lazy.
+    Esto evita problemas de contexto runnable en LangGraph.
+    """
+    global extraction_chain
+    if extraction_chain is None:
+        extraction_chain = get_macronutrient_extraction_chain()
+    return extraction_chain
 
 def extract_macronutrients_service(
     ingredients: List[str],
@@ -63,7 +73,8 @@ def extract_macronutrients_service(
         macronutrient_extractions = []
         
         for ingredient in ingredients:
-            extraction_result = extraction_chain.invoke({
+            chain = get_extraction_chain()
+            extraction_result = chain.invoke({
                 "ingredients": [ingredient],
                 "meal_type": meal_type,
                 "preparation_method": preparation_method,
@@ -229,7 +240,8 @@ def extract_macronutrients_local_test(
         for i, ingredient in enumerate(ingredients, 1):
             print(f"🔍 Analizando ingrediente {i}/{len(ingredients)}: {ingredient}")
             
-            extraction_result = extraction_chain.invoke({
+            chain = get_extraction_chain()
+            extraction_result = chain.invoke({
                 "ingredients": [ingredient],
                 "meal_type": meal_type,
                 "preparation_method": preparation_method,
