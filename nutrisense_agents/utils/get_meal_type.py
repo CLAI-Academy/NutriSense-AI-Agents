@@ -2,20 +2,20 @@ from datetime import datetime
 from typing import Literal
 
 
-def get_type_meal() -> Literal['breakfast', 'lunch', 'dinner', 'snack']:
+def get_type_meal() -> Literal['desayuno', 'almuerzo', 'cena', 'snack']:
     """
     Determina qué comida corresponde según la hora actual del día.
     
     Returns:
         str: Uno de los siguientes valores según el tramo horario:
-            - 'breakfast': de 6:00 AM a 11:59 AM
-            - 'lunch': de 12:00 PM a 4:59 PM  
-            - 'dinner': de 5:00 PM a 9:59 PM
+            - 'desayuno': de 6:00 AM a 11:59 AM
+            - 'almuerzo': de 12:00 PM a 4:59 PM  
+            - 'cena': de 5:00 PM a 9:59 PM
             - 'snack': de 10:00 PM a 5:59 AM
     
     Example:
         >>> get_type_meal()
-        'breakfast'  # si son las 8:30 AM
+        'desayuno'  # si son las 8:30 AM
     """
     # Obtener la hora actual del sistema
     current_time = datetime.now()
@@ -23,17 +23,17 @@ def get_type_meal() -> Literal['breakfast', 'lunch', 'dinner', 'snack']:
     
     # Evaluar en qué tramo horario se encuentra
     if 6 <= current_hour <= 11:
-        return 'breakfast'
+        return 'desayuno'
     elif 12 <= current_hour <= 16:
-        return 'lunch'
+        return 'almuerzo'
     elif 17 <= current_hour <= 23:
-        return 'dinner'
+        return 'cena'
     else:
         # Caso especial: de 22:00 (10 PM) a 5:59 AM
         return 'snack'
 
 
-def get_type_meal_with_time(hour: int) -> Literal['breakfast', 'lunch', 'dinner', 'snack']:
+def get_type_meal_with_time(hour: int) -> Literal['desayuno', 'almuerzo', 'cena', 'snack']:
     """
     Versión alternativa que permite especificar una hora específica para testing.
     
@@ -50,11 +50,11 @@ def get_type_meal_with_time(hour: int) -> Literal['breakfast', 'lunch', 'dinner'
         raise ValueError("La hora debe estar entre 0 y 23")
     
     if 6 <= hour <= 11:
-        return 'breakfast'
+        return 'desayuno'
     elif 12 <= hour <= 16:
-        return 'lunch'
+        return 'almuerzo'
     elif 17 <= hour <= 22:
-        return 'dinner'
+        return 'cena'
     else:
         return 'snack'
 
