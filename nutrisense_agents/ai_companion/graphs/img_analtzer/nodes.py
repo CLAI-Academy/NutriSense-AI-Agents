@@ -75,13 +75,41 @@ def human_ingredients_validation(state: RecipeState) -> Dict[str, Any]:
         }
     }
     
-    # Pausar y enviar al usuario
-    interrupt(validation_payload)
+    # 🔥 CAMBIO CRÍTICO: Pausar y obtener respuesta del usuario
+    user_response = interrupt(validation_payload)
     
-    return {
+    # 🔥 NUEVO: Procesar la respuesta del usuario y actualizar el estado
+    if user_response.get("action") == "cancel":
+        return {
+            "current_step": "cancelled_by_user",
+            "action": "cancel",
+            "cancellation_reason": user_response.get("reason", "Proceso cancelado por el usuario")
+        }
+    
+    # 🔥 CRÍTICO: Actualizar el estado con los datos del usuario
+    updated_state = {
         "current_step": "ingredients_validated",
         "validation_completed": True
     }
+    
+    # Actualizar ingredientes si el usuario los modificó
+    if "extracted_ingredients" in user_response:
+        updated_state["extracted_ingredients"] = user_response["extracted_ingredients"]
+        logger.info(f"🔄 Ingredientes actualizados por usuario: {user_response['extracted_ingredients']}")
+    
+    # Actualizar nombre de receta si el usuario lo modificó
+    if "recipe_name" in user_response:
+        updated_state["recipe_name"] = user_response["recipe_name"]
+        logger.info(f"🔄 Nombre de receta actualizado por usuario: {user_response['recipe_name']}")
+    
+    # Agregar metadatos adicionales del usuario
+    if "user_notes" in user_response:
+        updated_state["user_notes"] = user_response["user_notes"]
+    
+    if "portion_size" in user_response:
+        updated_state["portion_size"] = user_response["portion_size"]
+    
+    return updated_state
 
 def handle_user_cancellation(state: RecipeState) -> Dict[str, Any]:
     """Maneja la cancelación del usuario en cualquier punto"""
@@ -100,8 +128,12 @@ def calc_macros(state: RecipeState) -> Dict[str, Any]:
     if state.get("action") == "cancel":
         return handle_user_cancellation(state)
     
-    # Obtener ingredientes (pueden haber sido modificados por el usuario)
+    # 🔥 CRÍTICO: Obtener ingredientes actualizados (pueden haber sido modificados por el usuario)
     ingredients_list = state.get("extracted_ingredients", [])
+    
+    # 🔥 DEBUG: Verificar qué ingredientes se están usando
+    logger.info(f"🔍 DEBUG - Ingredientes para calcular macros: {ingredients_list}")
+    logger.info(f"🔍 DEBUG - Nombre de receta actual: {state.get('recipe_name')}")
     
     total_macros = {
         "calories": 0,
@@ -165,10 +197,13 @@ def human_consumption_validation(state: RecipeState) -> Dict[str, Any]:
     
     calculated_macros = state.get("calculated_macros", {})
     
+    current_recipe_name = state.get("recipe_name")
+    current_ingredients = state.get("extracted_ingredients", [])
+    
     consumption_payload = {
         "calculated_macros": calculated_macros,
-        "recipe_name": state.get("recipe_name"),
-        "extracted_ingredients": state.get("extracted_ingredients"),
+        "recipe_name": current_recipe_name,  # 🔥 Datos actualizados
+        "extracted_ingredients": current_ingredients,  # 🔥 Datos actualizados
         "current_step": "awaiting_consumption_validation",
         
         # Opciones de consumo
@@ -215,12 +250,34 @@ def human_consumption_validation(state: RecipeState) -> Dict[str, Any]:
         }
     }
     
-    interrupt(consumption_payload)
+    user_response = interrupt(consumption_payload)
     
-    return {
+    if user_response.get("action") == "cancel":
+        return {
+            "current_step": "cancelled_by_user",
+            "action": "cancel",
+            "cancellation_reason": user_response.get("reason", "Proceso cancelado por el usuario")
+        }
+    
+    # 🔥 CRÍTICO: Actualizar macros con los datos del usuario
+    updated_state = {
         "current_step": "consumption_validated",
         "consumption_validation_completed": True
     }
+    
+    # Actualizar macros si el usuario los modificó
+    if "calculated_macros" in user_response:
+        updated_state["calculated_macros"] = user_response["calculated_macros"]
+        logger.info(f"🔄 Macros actualizados por usuario: {user_response['calculated_macros']}")
+    
+    # Agregar información adicional del usuario
+    if "adjustment_reason" in user_response:
+        updated_state["adjustment_reason"] = user_response["adjustment_reason"]
+    
+    if "additional_foods" in user_response:
+        updated_state["additional_foods"] = user_response["additional_foods"]
+    
+    return updated_state
 
 
 def insert_food_diary(state: RecipeState) -> Dict[str, Any]:
@@ -235,12 +292,15 @@ def insert_food_diary(state: RecipeState) -> Dict[str, Any]:
     try:
         supabase_client = SupabaseClient()
         
-        # Datos finales (pueden haber sido modificados múltiples veces)
+        # 🔥 CRÍTICO: Usar datos finales actualizados
         extracted_ingredients = state.get("extracted_ingredients", [])
         calculated_macros = state.get("calculated_macros", {})
         recipe_name = state.get("recipe_name", "Receta analizada")
         
-        logger.info(f"🔍 DEBUG - calculated_macros completo: {calculated_macros}")
+        logger.info(f"🔍 DEBUG - Datos finales para insertar:")
+        logger.info(f"🔍 DEBUG - Ingredientes: {extracted_ingredients}")
+        logger.info(f"🔍 DEBUG - Nombre receta: {recipe_name}")
+        logger.info(f"🔍 DEBUG - Macros: {calculated_macros}")
 
         
         if not extracted_ingredients:
@@ -274,16 +334,6 @@ def insert_food_diary(state: RecipeState) -> Dict[str, Any]:
         # Determinar day_type
         day_type = "weekend" if current_date.weekday() >= 5 else "weekday"
         
-        # Determinar eating_context basado en la hora
-        hour = now.hour
-        if 6 <= hour <= 10:
-            eating_context = "familia"  # Desayuno en casa
-        elif 12 <= hour <= 14:
-            eating_context = "trabajo"  # Almuerzo
-        elif 19 <= hour <= 22:
-            eating_context = "familia"  # Cena en casa
-        else:
-            eating_context = "solo"  # Fuera de horarios típicos
         
         # 🔍 FILTRAR SOLO LOS MACROS QUE EXISTEN EN TU ESQUEMA
         allowed_macros = ["calories", "protein", "carbs", "fat", "fiber"]
@@ -300,17 +350,17 @@ def insert_food_diary(state: RecipeState) -> Dict[str, Any]:
             "date": current_date.isoformat(),
             "meal_type": meal_type,
             "recipe_id": None,  # No tenemos receta, es análisis de imagen
-            "food_name": recipe_name,
+            "food_name": recipe_name,  # 🔥 Usar nombre actualizado
             "quantity": 1.0,
-            "unit": "serving",
+            "unit": "gramos",
             # Solo usar macros permitidos
             **filtered_macros,
             "notes": " | ".join(notes_parts),
             "consumed_at": now.isoformat(),
-            "location_type": "home",  # Asumimos casa por defecto
+            "location_type": None,  # Asumimos casa por defecto
             "time_since_last_meal": None,  # Se calculará después si se implementa
             "day_type": day_type,
-            "eating_context": eating_context,
+            "eating_context": None,
             "mood_emoji": None,  # Solo se llena ocasionalmente
             "created_at": now.isoformat()
         }
@@ -334,7 +384,7 @@ def insert_food_diary(state: RecipeState) -> Dict[str, Any]:
                 "current_step": "food_diary_inserted",
                 "success": True,
                 "final_summary": {
-                    "recipe_name": recipe_name,
+                    "recipe_name": recipe_name,  # 🔥 Nombre actualizado
                     "ingredients_count": len(extracted_ingredients),
                     "total_calories": filtered_macros.get("calories", 0),
                     "modifications_made": bool(state.get("user_notes") or state.get("adjustment_reason")),
