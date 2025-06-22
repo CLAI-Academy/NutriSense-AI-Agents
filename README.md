@@ -235,6 +235,75 @@ result = extract_macronutrients_service(
 
 **Documentación completa**: [README del servicio](nutrisense_agents/api/services/README_macronutrient_service.md)
 
+## 🌐 API REST
+
+### Servidor FastAPI
+
+```bash
+# Iniciar el servidor de desarrollo
+uvicorn nutrisense_agents.main:app --reload --port 8001
+
+# El servidor estará disponible en:
+# - API: http://127.0.0.1:8001
+# - Documentación Swagger: http://127.0.0.1:8001/docs
+# - Documentación ReDoc: http://127.0.0.1:8001/redoc
+```
+
+### ✅ Endpoint: Extractor de Macronutrientes
+
+**POST** `/api/macronutrients`
+
+- Análisis completo con guardado en base de datos
+- Requiere configuración de Supabase
+
+**POST** `/api/macronutrients/local`
+
+- Modo de prueba local (sin base de datos)
+- Ideal para desarrollo y testing
+
+**Ejemplo de uso:**
+
+```bash
+curl -X POST "http://127.0.0.1:8001/api/macronutrients/local" \
+-H "Content-Type: application/json" \
+-d '{
+  "ingredients": ["100g pechuga de pollo", "150g arroz blanco cocido", "50g brócoli"],
+  "user_id": "test_user_123",
+  "meal_type": "almuerzo",
+  "preparation_method": "cocido",
+  "portion_size": "porción mediana",
+  "additional_notes": "comida casera sin aceite adicional"
+}'
+```
+
+**Respuesta de ejemplo:**
+
+```json
+{
+  "success": true,
+  "mode": "LOCAL_TEST",
+  "extracted_macronutrients": [
+    {
+      "name": "Pechuga de pollo",
+      "calories_per_100g": 165.0,
+      "protein_per_100g": 31.0,
+      "carbs_per_100g": 0.0,
+      "fat_per_100g": 3.6,
+      "estimated_quantity_grams": 100.0,
+      "total_calories": 165.0,
+      "total_protein": 31.0,
+      "confidence_score": 0.95
+    }
+  ],
+  "total_nutrition": {
+    "calories": 377.0,
+    "protein": 36.45,
+    "carbs": 45.6,
+    "fat": 4.25
+  }
+}
+```
+
 ## 🛠️ Tecnologías Utilizadas
 
 - **🐍 Python 3.12+** - Lenguaje principal
@@ -284,6 +353,7 @@ def mi_servicio(input_data):
 - [x] Configuración de modelos de IA (OpenAI/Anthropic)
 - [x] Servicio de ejemplo funcional
 - [x] **Servicio 4: Extractor de macronutrientes**
+- [x] **API REST para macronutrientes (FastAPI)**
 - [x] Integración con Supabase
 - [x] Sistema de esquemas Pydantic
 - [x] Configuración modular
@@ -294,9 +364,7 @@ def mi_servicio(input_data):
 - [ ] Servicio 2: Generador de ficha de usuario
 - [ ] Servicio 3: Extractor de ingredientes
 - [ ] Agente central nutricional
-- [ ] API REST completa
 - [ ] Tests automatizados
-- [ ] Documentación de API
 
 ### 🔮 Futuro
 
