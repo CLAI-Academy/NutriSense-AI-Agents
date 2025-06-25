@@ -1,6 +1,7 @@
 from nutrisense_agents.ai_companion.agents.nutrition_plan_agent import get_nutrition_plan_agent_chain
-from nutrisense_agents.db.supabase.client import supabase
+from nutrisense_agents.db.supabase.client import SupabaseClient
 
+supabase = SupabaseClient()
 
 chain = get_nutrition_plan_agent_chain()
 
@@ -12,9 +13,8 @@ def generate_nutrition_plan_service(user_data: dict,user_id:str):
         result = chain.invoke(user_data)
         markdown = result.markdown
 
-        response = supabase.table("user_health_profile").update({
-            "nutrition_plan": markdown,
-        }).eq("user_id", user_id).execute()
+        response = supabase.add_nutritional_plan_to_user_health_profile(user_id, markdown)
+
 
         if response.get("error"):
             return {
