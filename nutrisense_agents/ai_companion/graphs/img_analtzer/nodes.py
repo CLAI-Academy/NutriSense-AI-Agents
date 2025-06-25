@@ -338,6 +338,8 @@ def insert_food_diary(state: RecipeState) -> Dict[str, Any]:
         # 🔍 FILTRAR SOLO LOS MACROS QUE EXISTEN EN TU ESQUEMA
         allowed_macros = ["calories", "protein", "carbs", "fat", "fiber"]
         filtered_macros = {}
+        image_url = state.get("image_url", None)
+        print(f"🔍 DEBUG - Image URL: {image_url}")
         
         for macro in allowed_macros:
             filtered_macros[macro] = calculated_macros.get(macro, 0)
@@ -362,7 +364,8 @@ def insert_food_diary(state: RecipeState) -> Dict[str, Any]:
             "day_type": day_type,
             "eating_context": None,
             "mood_emoji": None,  # Solo se llena ocasionalmente
-            "created_at": now.isoformat()
+            "created_at": now.isoformat(),
+            "image_url": image_url
         }
         
 

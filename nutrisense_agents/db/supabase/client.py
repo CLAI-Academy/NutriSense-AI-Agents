@@ -92,6 +92,7 @@ class SupabaseClient:
             "time_since_last_meal": data.get("time_since_last_meal"),  # Puede ser None
             "day_type": data.get("day_type", "weekday"),
             "eating_context": data.get("eating_context"),  # Puede ser None
+            "image_url": data.get("image_url"),
             "mood_emoji": data.get("mood_emoji"),  # Puede ser None
             "created_at": data.get("created_at", ""),
         }
