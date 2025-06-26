@@ -50,7 +50,21 @@ class NutritionPlanInputSchema(BaseModel):
     daily_fat_target: Optional[float] = None
     weight_target: Optional[float] = None
 
+class RecomendedRecipes(BaseModel):
+    name: str
+    ingredients: List[str]
+    instructions: str
+    calories_per_serving: int
+    protein_per_serving: float
+    carbs_per_serving: float
+    fat_per_serving: float
+    prep_time: int
+    cook_time: int
+    servings: int
+    
+    
 
 class NutritionPlanSchema(BaseModel):
     markdown: str = Field(description="Markdown formatted nutrition plan content")
+    recipes: List[RecomendedRecipes] = Field(description="List of recommended recipes")
     name: Optional[str] = Field(default=None, description="Título opcional del plan")

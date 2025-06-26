@@ -62,8 +62,8 @@ class SupabaseClient:
     def add_summary_to_user_health_profile(self, user_id: UUID, summary: str) -> Dict[str, Any]:
         return self._update_health_profile(user_id, summary=summary)
     
-    def add_nutritional_plan_to_user_health_profile(self, user_id: UUID, plan: str) -> Dict[str, Any]:
-        return self._update_health_profile(user_id, nutritional_plan=plan)
+    def add_nutritional_plan_to_user_health_profile(self, user_id: UUID, plan: str, recipes: list) -> Dict[str, Any]:
+        return self._update_health_profile(user_id, nutritional_plan=plan, recommended_recipes=recipes)
     
     def add_food_diary(self, user_id: UUID, data: Dict[str, Any]) -> Dict[str, Any]:
         """

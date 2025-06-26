@@ -12,8 +12,10 @@ def generate_nutrition_plan_service(user_data: dict,user_id:str):
             
         result = chain.invoke(user_data)
         markdown = result.markdown
+        recipes = [recipe.model_dump() for recipe in result.recipes]
+        print(f"Recipes: {recipes}")
 
-        response = supabase.add_nutritional_plan_to_user_health_profile(user_id, markdown)
+        response = supabase.add_nutritional_plan_to_user_health_profile(user_id, markdown, recipes)
 
 
         if response.get("error"):

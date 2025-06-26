@@ -4,7 +4,7 @@ from nutrisense_agents.config.agent_config import get_chat_model
 from nutrisense_agents.ai_companion.prompts.nutrition_plan_prompt import NUTRITION_PLAN_PROMPT
 
 def get_nutrition_plan_agent_chain():
-    model = get_chat_model(model_type="groq", temperature=0.3).with_structured_output(NutritionPlanSchema)
+    model = get_chat_model(model_type="gpt", temperature=0.3).with_structured_output(NutritionPlanSchema)
 
     prompt = ChatPromptTemplate([
     ("system", NUTRITION_PLAN_PROMPT),

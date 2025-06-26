@@ -1,9 +1,20 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from nutrisense_agents.api.routes import router as api_router   
+from nutrisense_agents.api.routes import router as api_router
+# Importar el router de análisis de imágenes (igual que en server.py)
+from nutrisense_agents.api.routes.img_analysis_route import router as img_analysis_router
+import json
+import logging
 
+# Configurar logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-app = FastAPI()
+app = FastAPI(
+    title="NutriSense AI API",
+    description="API para análisis nutricional con IA",
+    version="1.0.0"
+)
 
 # Configurar CORS
 app.add_middleware(
@@ -14,8 +25,123 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Rutas HTTP
+@app.get("/")
+async def root():
+    """Endpoint raíz para verificar que el servidor está funcionando"""
+    return {
+        "message": "NutriSense AI API está funcionando",
+        "version": "1.0.0",
+        "status": "active",
+        "protocols": ["HTTP", "WebSocket"]
+    }
+
+@app.get("/health")
+async def health_check():
+    """Endpoint de salud para monitoreo"""
+    return {
+        "status": "healthy",
+        "service": "NutriSense AI API"
+    }
+
+# Incluir rutas HTTP existentes
 app.include_router(api_router)
+# Incluir el router de análisis de imágenes (con WebSockets específicos)
+app.include_router(img_analysis_router)
+
+# Configuración WebSocket
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: list[WebSocket] = []
+
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
+        logger.info(f"Cliente WebSocket conectado. Total conexiones: {len(self.active_connections)}")
+
+    def disconnect(self, websocket: WebSocket):
+        self.active_connections.remove(websocket)
+        logger.info(f"Cliente WebSocket desconectado. Total conexiones: {len(self.active_connections)}")
+
+    async def send_personal_message(self, message: str, websocket: WebSocket):
+        await websocket.send_text(message)
+
+    async def broadcast(self, message: str):
+        for connection in self.active_connections:
+            try:
+                await connection.send_text(message)
+            except:
+                # Remover conexiones cerradas
+                self.active_connections.remove(connection)
+
+manager = ConnectionManager()
+
+# Endpoint WebSocket
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    """Endpoint WebSocket para comunicación en tiempo real"""
+    await manager.connect(websocket)
+    try:
+        while True:
+            # Recibir mensaje del cliente
+            data = await websocket.receive_text()
+            logger.info(f"Mensaje WebSocket recibido: {data}")
+            
+            try:
+                # Procesar mensaje JSON
+                message = json.loads(data)
+                response = {
+                    "type": "response",
+                    "message": f"Mensaje recibido: {message.get('message', 'Sin mensaje')}",
+                    "timestamp": str(datetime.now())
+                }
+                await manager.send_personal_message(json.dumps(response), websocket)
+            except json.JSONDecodeError:
+                # Si no es JSON, enviar mensaje simple
+                await manager.send_personal_message(f"Echo: {data}", websocket)
+                
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
+
+# WebSocket para análisis en tiempo real
+@app.websocket("/ws/analysis")
+async def websocket_analysis_endpoint(websocket: WebSocket):
+    """WebSocket específico para análisis nutricional en tiempo real"""
+    await manager.connect(websocket)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            logger.info(f"Análisis WebSocket recibido: {data}")
+            
+            try:
+                message = json.loads(data)
+                # Aquí puedes integrar tu lógica de análisis
+                response = {
+                    "type": "analysis_result",
+                    "data": message,
+                    "status": "processed",
+                    "timestamp": str(datetime.now())
+                }
+                await manager.send_personal_message(json.dumps(response), websocket)
+            except Exception as e:
+                error_response = {
+                    "type": "error",
+                    "message": str(e),
+                    "timestamp": str(datetime.now())
+                }
+                await manager.send_personal_message(json.dumps(error_response), websocket)
+                
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    from datetime import datetime
+    
+    logger.info("Iniciando servidor con soporte HTTP y WebSocket...")
+    uvicorn.run(
+        app, 
+        host="0.0.0.0", 
+        port=8000,
+        log_level="info"
+    )
