@@ -4,6 +4,25 @@ from nutrisense_agents.config.settings import settings
 from supabase import create_client, Client
 import uuid
 
+def get_supabase_client():
+    """
+    Función para obtener un cliente de Supabase configurado.
+    Retorna None si las variables de entorno no están configuradas.
+    """
+    if not settings.SUPABASE_URL or not settings.SUPABASE_SERVICE_ROLE_KEY:
+        print("Warning: Supabase URL or Service Role Key not configured")
+        return None
+    
+    try:
+        client = create_client(
+            settings.SUPABASE_URL,
+            settings.SUPABASE_SERVICE_ROLE_KEY,
+        )
+        return client
+    except Exception as e:
+        print(f"Error creating Supabase client: {e}")
+        return None
+
 class SupabaseClient:
     """
     Cliente para interactuar con la base de datos Supabase
@@ -59,4 +78,4 @@ class SupabaseClient:
             "created_at": data.get("created_at", ""),
         }
         return self.supabase.table("food_diary").insert(food_diary_data).execute()
-    
+
