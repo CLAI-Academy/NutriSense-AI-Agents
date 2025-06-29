@@ -12,6 +12,7 @@ def get_image_extraction_agent_chain():
     prompt = ChatPromptTemplate.from_messages([
         ("system", IMG_ANALISIS_PROMPT),
         ("human", [
+            {"type": "text", "text": "Notas adicionales: {notes}"},
             {"type": "image_url", "image_url": {"url": "{image_url}"}}
         ])
     ])

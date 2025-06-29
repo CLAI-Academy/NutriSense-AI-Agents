@@ -14,7 +14,7 @@ def vision_extract(state: RecipeState) -> Dict[str, Any]:
     """Extrae ingredientes de la imagen usando visión por computadora"""
     try:
         image_extraction_agent_chain = get_image_extraction_agent_chain()
-        result = image_extraction_agent_chain.invoke({"image_url": state["image_url"]})
+        result = image_extraction_agent_chain.invoke({"image_url": state["image_url"], "notes": state["user_notes"]})
     except Exception as e:
         return {
             "extracted_ingredients": [],

@@ -30,7 +30,7 @@ class RecipeState(TypedDict):
     # Datos de entrada
     image_url: str
     user_id: Optional[str]
-    
+    user_notes: Optional[str]
     # Datos extraídos de la imagen
     extracted_ingredients: Optional[List[str]]
     recipe_name: Optional[str]

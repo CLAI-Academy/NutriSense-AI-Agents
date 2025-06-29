@@ -20,7 +20,7 @@ async def recipe_analysis_websocket(ws: WebSocket, thread_id: str):
         # Primer mensaje debe traer la imagen URL
         init_msg = await ws.receive_json()
         image_url = init_msg.get("image_url")
-        
+        user_notes = init_msg.get("user_notes", "")
         if not image_url:
             await ws.send_json({
                 "type": "error",
@@ -33,6 +33,7 @@ async def recipe_analysis_websocket(ws: WebSocket, thread_id: str):
         init_state = {
             "image_url": image_url,
             "user_id": init_msg.get("user_id"),
+            "user_notes": user_notes,
             "current_step": "starting",
             "success": False,
             "error_message": None
