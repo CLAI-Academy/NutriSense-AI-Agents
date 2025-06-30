@@ -7,48 +7,48 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+def get_supabase_client():
+    if not settings.SUPABASE_URL or not settings.SUPABASE_SERVICE_ROLE_KEY:
+        print("Warning: Supabase URL or Service Role Key not configured")
+        return None
+
+    try:
+        client = create_client(
+            settings.SUPABASE_URL,
+            settings.SUPABASE_SERVICE_ROLE_KEY,
+        )
+        return client
+    except Exception as e:
+        print(f"Error creating Supabase client: {e}")
+        return None
+
 class SupabaseClient:
-    """
-    Cliente para interactuar con la base de datos Supabase
-    """
     def __init__(self):
-        """
-        Inicializa el cliente de Supabase
-        """
         self.supabase: Client = create_client(
             settings.SUPABASE_URL,
             settings.SUPABASE_SERVICE_ROLE_KEY,
         )
-    
+
     def refresh_schema_cache(self):
-        """
-        Refresca el cache de esquema de Supabase
-        """
         try:
-            # Forzar refresh del esquema haciendo una query simple
             self.supabase.table("food_diary").select("id").limit(1).execute()
             logger.info("✅ Schema cache refrescado exitosamente")
             return True
         except Exception as e:
             logger.error(f"❌ Error refrescando schema cache: {e}")
             return False
-    
+
     def verify_food_diary_schema(self):
-        """
-        Verifica las columnas disponibles en food_diary para debug
-        """
         try:
-            # Obtener información de la tabla
             result = self.supabase.rpc('get_table_columns', {
                 'table_name': 'food_diary'
             }).execute()
-            
             logger.info(f"🔍 Columnas disponibles en food_diary: {result.data}")
             return result.data
         except Exception as e:
             logger.warning(f"⚠️ No se pudo verificar esquema (esto es normal): {e}")
             return None
-    
+
     def _update_health_profile(self, user_id: UUID, **fields) -> Dict[str, Any]:
         update = (
             self.supabase
@@ -58,25 +58,20 @@ class SupabaseClient:
             .execute()
         )
         return {"message": "Actualizado"} if update.data else {"message": "Perfil no encontrado"}
-    
+
     def add_summary_to_user_health_profile(self, user_id: UUID, summary: str) -> Dict[str, Any]:
         return self._update_health_profile(user_id, summary=summary)
-    
+
     def add_nutritional_plan_to_user_health_profile(self, user_id: UUID, plan: str, recipes: list) -> Dict[str, Any]:
         return self._update_health_profile(user_id, nutritional_plan=plan, recommended_recipes=recipes)
-    
+
     def add_food_diary(self, user_id: UUID, data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Añade entrada al food_diary usando SOLO los campos que existen en el esquema actual
-        """
-        
-        # 🔧 SOLO CAMPOS QUE EXISTEN EN TU ESQUEMA ACTUAL
         food_diary_data = {
             "id": str(uuid.uuid4()),
             "user_id": str(user_id),
             "date": data.get("date", ""),
             "meal_type": data.get("meal_type", ""),
-            "recipe_id": data.get("recipe_id"),  # Puede ser None
+            "recipe_id": data.get("recipe_id"),
             "food_name": data.get("food_name", ""),
             "quantity": data.get("quantity", 0),
             "unit": data.get("unit", ""),
@@ -86,33 +81,28 @@ class SupabaseClient:
             "fat": data.get("fat", 0),
             "fiber": data.get("fiber", 0),
             "notes": data.get("notes", ""),
-            # ❌ ELIMINADO: "sugar": data.get("sugar", 0),  # <- ESTA LÍNEA CAUSABA EL ERROR
             "consumed_at": data.get("consumed_at", ""),
             "location_type": data.get("location_type", "unknown"),
-            "time_since_last_meal": data.get("time_since_last_meal"),  # Puede ser None
+            "time_since_last_meal": data.get("time_since_last_meal"),
             "day_type": data.get("day_type", "weekday"),
-            "eating_context": data.get("eating_context"),  # Puede ser None
+            "eating_context": data.get("eating_context"),
             "image_url": data.get("image_url"),
-            "mood_emoji": data.get("mood_emoji"),  # Puede ser None
+            "mood_emoji": data.get("mood_emoji"),
             "created_at": data.get("created_at", ""),
         }
-        
-        # Remover campos None para evitar problemas
+
         food_diary_data = {k: v for k, v in food_diary_data.items() if v is not None}
-        
         logger.info(f"🔍 Insertando en food_diary: {list(food_diary_data.keys())}")
-        
+
         try:
             result = self.supabase.table("food_diary").insert(food_diary_data).execute()
             logger.info("✅ Inserción exitosa en food_diary")
             return result
         except Exception as e:
             logger.error(f"❌ Error insertando en food_diary: {e}")
-            
-            # 🔄 Fallback: Intentar refrescar schema y reintentar
             logger.info("🔄 Intentando refresh de schema y reintento...")
             self.refresh_schema_cache()
-            
+
             try:
                 result = self.supabase.table("food_diary").insert(food_diary_data).execute()
                 logger.info("✅ Inserción exitosa después de refresh")
