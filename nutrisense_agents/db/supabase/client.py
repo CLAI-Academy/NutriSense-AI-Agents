@@ -24,10 +24,14 @@ def get_supabase_client():
 
 class SupabaseClient:
     def __init__(self):
-        self.supabase: Client = create_client(
-            settings.SUPABASE_URL,
-            settings.SUPABASE_SERVICE_ROLE_KEY,
-        )
+        try:
+            self.supabase: Client = create_client(
+                settings.SUPABASE_URL,
+                settings.SUPABASE_SERVICE_ROLE_KEY,
+            )
+        except Exception as e:
+            logger.error(f"Failed to initialize Supabase client: {e}")
+            raise
 
     def refresh_schema_cache(self):
         try:
@@ -50,20 +54,54 @@ class SupabaseClient:
             return None
 
     def _update_health_profile(self, user_id: UUID, **fields) -> Dict[str, Any]:
-        update = (
-            self.supabase
-            .table("user_health_profile")
-            .update(fields)
-            .eq("user_id", str(user_id))
-            .execute()
-        )
-        return {"message": "Actualizado"} if update.data else {"message": "Perfil no encontrado"}
+        try:
+            # First, check if the profile exists
+            existing_profile = (
+                self.supabase
+                .table("user_health_profile")
+                .select("user_id")
+                .eq("user_id", str(user_id))
+                .execute()
+            )
+            
+            if existing_profile.data and len(existing_profile.data) > 0:
+                # Profile exists, update it
+                update = (
+                    self.supabase
+                    .table("user_health_profile")
+                    .update(fields)
+                    .eq("user_id", str(user_id))
+                    .execute()
+                )
+                logger.info(f"Health profile updated for user {user_id}")
+                return {"message": "Actualizado", "operation": "update"}
+            else:
+                # Profile doesn't exist, create it
+                fields["user_id"] = str(user_id)
+                insert = (
+                    self.supabase
+                    .table("user_health_profile")
+                    .insert(fields)
+                    .execute()
+                )
+                logger.info(f"Health profile created for user {user_id}")
+                return {"message": "Creado", "operation": "insert"}
+                
+        except Exception as e:
+            logger.error(f"Error in _update_health_profile: {str(e)}")
+            return {"error": str(e)}
 
     def add_summary_to_user_health_profile(self, user_id: UUID, summary: str) -> Dict[str, Any]:
         return self._update_health_profile(user_id, summary=summary)
 
-    def add_nutritional_plan_to_user_health_profile(self, user_id: UUID, plan: str, recipes: list) -> Dict[str, Any]:
-        return self._update_health_profile(user_id, nutritional_plan=plan, recommended_recipes=recipes)
+    def add_nutritional_plan_to_user_health_profile(self, user_id: str, markdown: str, recipes: list) -> Dict[str, Any]:
+        return self._update_health_profile(user_id, nutritional_plan=markdown, recommended_recipes=recipes)
+    
+    def update_complete_health_profile(self, user_id: str, health_profile_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Actualiza el perfil completo de salud del usuario con todos los campos
+        """
+        return self._update_health_profile(UUID(user_id), **health_profile_data)
 
     def add_food_diary(self, user_id: UUID, data: Dict[str, Any]) -> Dict[str, Any]:
         food_diary_data = {
