@@ -115,10 +115,15 @@ async def websocket_analysis_endpoint(websocket: WebSocket):
 
 if __name__ == "__main__":
     import uvicorn
-    logger.info("Iniciando servidor con soporte HTTP y WebSocket...")
+    import os
+    
+    # CRÍTICO: Leer puerto de variable de entorno
+    port = int(os.environ.get("PORT", 8000))
+    
+    logger.info(f"Iniciando servidor en puerto {port}...")
     uvicorn.run(
         app,
         host="0.0.0.0",
-        port=8000,
+        port=port,  # NO hardcodeado!
         log_level="info"
     )
