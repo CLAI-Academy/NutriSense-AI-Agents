@@ -50,21 +50,48 @@ class NutritionPlanInputSchema(BaseModel):
     daily_fat_target: Optional[float] = None
     weight_target: Optional[float] = None
 
+
+class MealGroup(BaseModel):
+    proteinas: List[str] = Field(..., description="Opciones de alimentos ricos en proteínas")
+    hidratos: List[str] = Field(..., description="Opciones de alimentos con carbohidratos")
+    vegetales: Optional[List[str]] = Field(default=None, description="Opciones de vegetales (cuando aplique)")
+    frutas_opcional: Optional[List[str]] = Field(default=None, description="Frutas para agregar opcionalmente")
+    grasas_opcional: Optional[List[str]] = Field(default=None, description="Grasas saludables que se pueden incluir")
+    ejemplos: List[str] = Field(..., description="Ejemplos de combinaciones prácticas para esta comida")
+
+
+class DailyMeals(BaseModel):
+    desayuno: MealGroup = Field(..., description="Opciones y combinaciones para el desayuno")
+    almuerzo: MealGroup = Field(..., description="Opciones y combinaciones para el almuerzo")
+    merienda: MealGroup = Field(..., description="Opciones y combinaciones para la merienda")
+    cena: MealGroup = Field(..., description="Opciones y combinaciones para la cena")
+    colaciones_opcionales: List[str] = Field(..., description="Snacks recomendados entre comidas o post entrenamiento")
+
+
 class RecomendedRecipes(BaseModel):
-    name: str
-    ingredients: List[str]
-    instructions: str
-    calories_per_serving: int
-    protein_per_serving: float
-    carbs_per_serving: float
-    fat_per_serving: float
-    prep_time: int
-    cook_time: int
-    servings: int
-    
-    
+    name: str = Field(..., description="Nombre de la receta")
+    ingredients: List[str] = Field(..., description="Lista de ingredientes necesarios")
+    instructions: str = Field(..., description="Pasos para preparar la receta")
+    calories_per_serving: int = Field(..., description="Calorías por porción")
+    protein_per_serving: float = Field(..., description="Proteínas por porción (en gramos)")
+    carbs_per_serving: float = Field(..., description="Hidratos por porción (en gramos)")
+    fat_per_serving: float = Field(..., description="Grasas por porción (en gramos)")
+    prep_time: int = Field(..., description="Tiempo de preparación (en minutos)")
+    cook_time: int = Field(..., description="Tiempo de cocción (en minutos)")
+    servings: int = Field(..., description="Cantidad de porciones que rinde la receta")
+
 
 class NutritionPlanSchema(BaseModel):
-    markdown: str = Field(description="Markdown formatted nutrition plan content")
-    recipes: List[RecomendedRecipes] = Field(description="List of recommended recipes")
-    name: Optional[str] = Field(default=None, description="Título opcional del plan")
+    name: str = Field(default=None, description="Título opcional del plan")
+    description: str = Field(default=None, description="Descripción opcional del plan, hablando con el nombre del usuario, y siempre con una frase personalizada que describa el objetivo del plan, por Ej:(Bienvenido a tu plan nutricional de Nutrisense, Alejandro, tu objetivo es perder peso, por lo que hemos diseñado un plan para que puedas alcanzarlo)")
+    plan: DailyMeals = Field(..., description="Plan de alimentación organizado por momentos del día")
+    recipes: List[RecomendedRecipes] = Field(..., description="Lista de recetas recomendadas incluidas en el plan")
+
+class NutritionTargetSchema(BaseModel):
+    calories: int = Field(description="Objetivo diario de calorias, ej: 2000")
+    protein: int = Field(description="Objetivo diario de proteinas, ej: 140")
+    carbs: int = Field(description="Objetivo diario de carbohidratos, ej: 170")
+    grasas: int = Field(description="Objetivo diario de grasas, ej: 50")
+
+class SummarySchema(BaseModel):
+    summary: str = Field(description="Resumen conversacional del plan nutricional en formato de guión, sin markdown ni formato especial")

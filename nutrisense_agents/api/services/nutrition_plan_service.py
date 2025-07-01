@@ -1,40 +1,73 @@
-from nutrisense_agents.ai_companion.agents.nutrition_plan_agent import get_nutrition_plan_agent_chain
-from nutrisense_agents.db.supabase.client import SupabaseClient
+from nutrisense_agents.ai_companion.graphs.nutrition_plan_graph.graph import compiled_nutrition_plan_graph
+from nutrisense_agents.ai_companion.schemas.nutrition_plan_schema import NutritionPlanInputSchema
 
-supabase = SupabaseClient()
-
-chain = get_nutrition_plan_agent_chain()
-
-def generate_nutrition_plan_service(user_data: dict,user_id:str):
+def generate_nutrition_plan_service(user_data: dict, user_id: str):
     """Recibe un diccionario con los datos del usuario y su user_id.
-    Genera un plan nutricional en formato markdown y lo guarda en Supabase."""
+    Genera un plan nutricional usando el grafo de LangGraph y lo guarda en Supabase."""
     try:
-            
-        result = chain.invoke(user_data)
-        markdown = result.markdown
-        recipes = [recipe.model_dump() for recipe in result.recipes]
-        print(f"Recipes: {recipes}")
-
-        response = supabase.add_nutritional_plan_to_user_health_profile(user_id, markdown, recipes)
-
-
-        if response.get("error"):
+        # Preparar el estado inicial con los datos del usuario
+        initial_state = {
+            "user_id": user_id,
+            "age": user_data.get("age"),
+            "gender": user_data.get("gender"),
+            "weight": user_data.get("weight"),
+            "height": user_data.get("height"),
+            "activity_level": user_data.get("activity_level"),
+            "goal": user_data.get("goal"),
+            "preferences": user_data.get("preferences", []),
+            "allergies": user_data.get("allergies", []),
+            "medical_conditions": user_data.get("medical_conditions", []),
+            "breakfast": user_data.get("breakfast"),
+            "lunch": user_data.get("lunch"),
+            "snack": user_data.get("snack"),
+            "dinner": user_data.get("dinner"),
+            "work_mode": user_data.get("work_mode"),
+            "shift_type": user_data.get("shift_type"),
+            "lunch_place": user_data.get("lunch_place"),
+            "who_cooks": user_data.get("who_cooks"),
+            "who_shops": user_data.get("who_shops"),
+            "cook_for_others": user_data.get("cook_for_others"),
+            "weekend_diff": user_data.get("weekend_diff"),
+            "cooking_frequency": user_data.get("cooking_frequency"),
+            "cooking_time": user_data.get("cooking_time"),
+            "cooking_likes": user_data.get("cooking_likes"),
+            "ultraprocessed_frequency": user_data.get("ultraprocessed_frequency"),
+            "weight_history": user_data.get("weight_history"),
+            "weight_changes": user_data.get("weight_changes"),
+            "weight_events": user_data.get("weight_events"),
+            "current_difficulties": user_data.get("current_difficulties"),
+            "emotional_eating": user_data.get("emotional_eating"),
+            "snacking": user_data.get("snacking"),
+            "alcohol_intake": user_data.get("alcohol_intake"),
+            "weight_target": user_data.get("weight_target")
+        }
+        
+        # Ejecutar el grafo completo
+        result = compiled_nutrition_plan_graph.invoke(initial_state)
+        
+        # Verificar si el proceso fue exitoso
+        if not result.get("success"):
             return {
                 "success": False,
-                "message": f"Error updating nutrition plan: {response['error']}",
-                "error": response["error"]
+                "message": f"Error generating nutrition plan: {result.get('error', 'Unknown error')}",
+                "error": result.get("error", "Unknown error")
             }
+        
+        # Retornar resultado exitoso
         return {
             "success": True,
-            "message": "Nutrition plan updated successfully",
-            "markdown": markdown
+            "message": "Nutrition plan generated and saved successfully",
+            "markdown": result.get("markdown_plan"),
+            "nutrition_targets": result.get("nutrition_targets"),
+            "db_response": result.get("db_response")
         }
+        
     except Exception as e:
-            return {
-                "success": False,
-                "message": f"An error occurred while generating the nutrition plan: {str(e)}",
-                "error": str(e)
-            } 
+        return {
+            "success": False,
+            "message": f"An error occurred while generating the nutrition plan: {str(e)}",
+            "error": str(e)
+        } 
 
 
 if __name__ == "__main__":
@@ -81,7 +114,8 @@ if __name__ == "__main__":
     }'''
     user_data = json.loads(raw_json)
 
-    markdown = generate_nutrition_plan_service(user_data)
+    result = generate_nutrition_plan_service(user_data, "test-user-id")
+    markdown = result.get("markdown", "")
 
     # Guardar el resultado en un archivo Markdown
     # Crear la carpeta 'outputs' si no existe
