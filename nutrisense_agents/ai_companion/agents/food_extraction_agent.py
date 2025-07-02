@@ -1,12 +1,10 @@
 from langchain_core.prompts import ChatPromptTemplate
-
 from nutrisense_agents.ai_companion.schemas.img_analysis_schema import ImageAnalysisResult
-
 from nutrisense_agents.config.agent_config import get_chat_model
-
-from nutrisense_agents.ai_companion.prompts.img_analisis_prompt import IMG_ANALISIS_PROMPT
+from nutrisense_agents.ai_companion.prompts.food_analysis_prompt import IMG_ANALISIS_PROMPT, TEXT_ANALYSIS_PROMPT
 
 def get_image_extraction_agent_chain():
+    """Cadena específica para extracción de ingredientes desde imágenes"""
     model = get_chat_model(model_type="gpt", temperature=0.3).with_structured_output(ImageAnalysisResult)
 
     prompt = ChatPromptTemplate.from_messages([
@@ -18,5 +16,16 @@ def get_image_extraction_agent_chain():
     ])
 
     chain = prompt | model
+    return chain
 
+def get_text_extraction_agent_chain():
+    """Cadena específica para extracción de ingredientes desde texto"""
+    model = get_chat_model(model_type="gpt", temperature=0.3).with_structured_output(ImageAnalysisResult)
+
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", TEXT_ANALYSIS_PROMPT),
+        ("human", "Texto a analizar: {text_description}")
+    ])
+
+    chain = prompt | model
     return chain
