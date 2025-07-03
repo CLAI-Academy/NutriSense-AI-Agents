@@ -128,6 +128,8 @@ class SupabaseClient:
             "image_url": data.get("image_url"),
             "mood_emoji": data.get("mood_emoji"),
             "created_at": data.get("created_at", ""),
+            "compatibility": data.get("compatibility"),
+            "agent_observation": data.get("agent_observation"),
         }
 
         food_diary_data = {k: v for k, v in food_diary_data.items() if v is not None}

@@ -1,8 +1,8 @@
 from typing import Dict, Any
-from datetime import datetime
+from datetime import datetime, date
 from nutrisense_agents.ai_companion.graphs.food_analyzer.state import FoodAnalysisState
 from langgraph.types import interrupt
-from nutrisense_agents.ai_companion.agents.food_extraction_agent import get_image_extraction_agent_chain, get_text_extraction_agent_chain
+from nutrisense_agents.ai_companion.agents.food_extraction_agent import get_image_extraction_agent_chain, get_text_extraction_agent_chain, get_compatibility_agent_chain
 from nutrisense_agents.ai_companion.agents.macronutrient_agent import get_macronutrient_extraction_chain
 from nutrisense_agents.utils.get_meal_type import get_type_meal
 from nutrisense_agents.db.supabase.client import SupabaseClient
@@ -389,8 +389,15 @@ def insert_food_diary(state: FoodAnalysisState) -> Dict[str, Any]:
         # Obtener image_url solo si es análisis de imagen
         image_url = state.get("image_url") if state.get("extraction_type") == "image" else None
         
+        # Obtener datos de compatibilidad nutricional
+        compatibility_result = state.get("compatibility_result", {})
+        compatibility = compatibility_result.get("compatibility")
+        agent_observation = compatibility_result.get("agent_observation")
+        
         logger.info(f"🔍 DEBUG - Macros filtrados: {filtered_macros}")
         logger.info(f"🔍 DEBUG - Image URL: {image_url}")
+        logger.info(f"🔍 DEBUG - Compatibilidad: {compatibility}")
+        logger.info(f"🔍 DEBUG - Observación del agente: {agent_observation}")
         
         # Preparar datos para food_diary según el esquema
         food_diary_data = {
@@ -409,7 +416,9 @@ def insert_food_diary(state: FoodAnalysisState) -> Dict[str, Any]:
             "eating_context": None,
             "mood_emoji": None,
             "created_at": now.isoformat(),
-            "image_url": image_url
+            "image_url": image_url,
+            "compatibility": compatibility,
+            "agent_observation": agent_observation
         }
         
         user_id = state.get("user_id", "default_user")
@@ -499,4 +508,114 @@ def update_user_streak(state: FoodAnalysisState) -> Dict[str, Any]:
             "current_streak": None,
             "current_step": "streak_update_failed",
             "error": f"Error actualizando streak: {str(e)}"
+        }
+
+def analyze_nutritional_compatibility(state: FoodAnalysisState) -> Dict[str, Any]:
+    """
+    Analiza la compatibilidad nutricional de la comida con los objetivos del usuario.
+    Se ejecuta en paralelo al cálculo de macronutrientes.
+    """
+    
+    # Verificar si el usuario canceló
+    if state.get("action") == "cancel":
+        return {
+            "compatibility_result": None,
+            "current_step": "compatibility_cancelled",
+            "error": "Análisis de compatibilidad cancelado por el usuario"
+        }
+    
+    try:
+        supabase_client = SupabaseClient()
+        user_id = state.get("user_id", "default_user")
+        
+        # Si no hay user_id válido, no analizar compatibilidad
+        if user_id == "default_user" or not user_id:
+            logger.warning("No se analiza compatibilidad porque no hay user_id válido")
+            return {
+                "compatibility_result": {
+                    "compatibility": "5", 
+                    "agent_observation": "No se pudo evaluar compatibilidad sin perfil de usuario."
+                },
+                "current_step": "compatibility_analyzed"
+            }
+        
+        # 1. Obtener targets del usuario desde user_health_profile
+        user_targets = {}
+        try:
+            profile_result = supabase_client.supabase.table("user_health_profile").select(
+                "daily_calories_target, daily_protein_target, daily_carbs_target, daily_fat_target"
+            ).eq("user_id", user_id).execute()
+            
+            if profile_result.data and len(profile_result.data) > 0:
+                profile = profile_result.data[0]
+                user_targets = {
+                    "calories": float(profile.get("daily_calories_target", 2000) or 2000),
+                    "protein": float(profile.get("daily_protein_target", 150) or 150),
+                    "carbs": float(profile.get("daily_carbs_target", 250) or 250),
+                    "fat": float(profile.get("daily_fat_target", 70) or 70)
+                }
+            else:
+                # Valores por defecto si no hay perfil
+                user_targets = {"calories": 2000, "protein": 150, "carbs": 250, "fat": 70}
+        except Exception as e:
+            logger.warning(f"Error obteniendo perfil del usuario: {e}")
+            user_targets = {"calories": 2000, "protein": 150, "carbs": 250, "fat": 70}
+        
+        # 2. Obtener consumo del día actual desde food_diary
+        today = date.today().isoformat()
+        daily_consumption = {"calories": 0, "protein": 0, "carbs": 0, "fat": 0}
+        
+        try:
+            diary_result = supabase_client.supabase.table("food_diary").select(
+                "calories, protein, carbs, fat"
+            ).eq("user_id", user_id).eq("date", today).execute()
+            
+            if diary_result.data:
+                for entry in diary_result.data:
+                    daily_consumption["calories"] += float(entry.get("calories", 0) or 0)
+                    daily_consumption["protein"] += float(entry.get("protein", 0) or 0)
+                    daily_consumption["carbs"] += float(entry.get("carbs", 0) or 0)
+                    daily_consumption["fat"] += float(entry.get("fat", 0) or 0)
+        except Exception as e:
+            logger.warning(f"Error obteniendo consumo diario: {e}")
+        
+        # 3. Obtener macros de la comida actual
+        current_meal_macros = state.get("calculated_macros", {})
+        if not current_meal_macros:
+            # Si no hay macros calculados aún, usar valores por defecto
+            current_meal_macros = {"calories": 500, "protein": 25, "carbs": 60, "fat": 20}
+        
+        # 4. Obtener ingredientes de la comida actual
+        ingredients = state.get("extracted_ingredients", [])
+        
+        # 5. Llamar al agente de compatibilidad
+        compatibility_chain = get_compatibility_agent_chain()
+        
+        compatibility_result = compatibility_chain.invoke({
+            "user_targets": user_targets,
+            "daily_consumption": daily_consumption,
+            "current_meal_macros": current_meal_macros,
+            "ingredients": ingredients
+        })
+        
+        # Guardar datos en el estado para usar en el nodo de inserción
+        return {
+            "compatibility_result": {
+                "compatibility": compatibility_result.compatibility,
+                "agent_observation": compatibility_result.agent_observation
+            },
+            "user_targets": user_targets,
+            "daily_consumption": daily_consumption,
+            "current_step": "compatibility_analyzed"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error analizando compatibilidad nutricional: {e}")
+        return {
+            "compatibility_result": {
+                "compatibility": "5",
+                "agent_observation": "No se pudo evaluar la compatibilidad debido a un error técnico."
+            },
+            "current_step": "compatibility_error",
+            "error": f"Error en análisis de compatibilidad: {str(e)}"
         }

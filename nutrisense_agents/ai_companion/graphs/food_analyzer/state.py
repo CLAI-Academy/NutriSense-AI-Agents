@@ -43,6 +43,11 @@ class FoodAnalysisState(TypedDict):
     # Datos de macronutrientes
     calculated_macros: Optional[Dict[str, float]]
     
+    # Datos de compatibilidad nutricional
+    compatibility_result: Optional[Dict[str, Any]]
+    user_targets: Optional[Dict[str, float]]
+    daily_consumption: Optional[Dict[str, float]]
+    
     # Control de flujo
     current_step: Optional[str]
     

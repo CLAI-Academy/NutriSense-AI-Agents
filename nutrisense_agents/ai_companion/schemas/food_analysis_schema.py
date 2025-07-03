@@ -12,5 +12,10 @@ class ImageAnalysisResult(BaseModel):
     # Información principal
     recipe_name: str = Field(description="Nombre descriptivo de la receta basado en los ingredientes detectados")
     ingredients: List[DetectedIngredient] = Field(description="Lista de ingredientes detectados en la imagen")
+
+class NutritionalCompatibility(BaseModel):
+    """Resultado del análisis de compatibilidad nutricional con objetivos del usuario"""
+    compatibility: str = Field(description="Compatibilidad del 1 al 10 con el objetivo nutricional del usuario")
+    agent_observation: str = Field(description="Mensaje al usuario sobre compatibilidad con objetivos, motivando o felicitando")
     
    

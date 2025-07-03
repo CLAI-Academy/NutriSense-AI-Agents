@@ -4,6 +4,7 @@ from nutrisense_agents.ai_companion.graphs.food_analyzer.nodes import (
     extract_food_info,
     human_ingredients_validation,
     calc_macros,
+    analyze_nutritional_compatibility,
     human_consumption_validation,
     update_user_streak,
     insert_food_diary,
@@ -20,6 +21,12 @@ def should_cancel(state: FoodAnalysisState) -> str:
         return "handle_cancellation"
     return "calc_macros"
 
+def should_cancel_after_macros(state: FoodAnalysisState) -> str:
+    """Determina si el análisis de compatibilidad debe cancelarse después de calcular macros"""
+    if state.get("action") == "cancel":
+        return "handle_cancellation"
+    return "analyze_compatibility"
+
 def should_cancel_after_consumption(state: FoodAnalysisState) -> str:
     """Determina si el proceso debe cancelarse después de la validación de consumo"""
     if state.get("action") == "cancel":
@@ -33,6 +40,7 @@ workflow = StateGraph(FoodAnalysisState)
 workflow.add_node("extract_food_info", extract_food_info)
 workflow.add_node("human_ingredients_validation", human_ingredients_validation)
 workflow.add_node("calc_macros", calc_macros)
+workflow.add_node("analyze_compatibility", analyze_nutritional_compatibility)
 workflow.add_node("human_consumption_validation", human_consumption_validation)
 workflow.add_node("update_streak", update_user_streak)
 workflow.add_node("insert_food_diary", insert_food_diary)
@@ -54,7 +62,18 @@ workflow.add_conditional_edges(
     }
 )
 
-workflow.add_edge("calc_macros", "human_consumption_validation")
+# Después de calcular macros, ejecutar análisis de compatibilidad
+workflow.add_conditional_edges(
+    "calc_macros",
+    should_cancel_after_macros,
+    {
+        "analyze_compatibility": "analyze_compatibility",
+        "handle_cancellation": "handle_cancellation"
+    }
+)
+
+# Después de compatibilidad, ir a validación de consumo
+workflow.add_edge("analyze_compatibility", "human_consumption_validation")
 
 # Condicional después de validación de consumo
 workflow.add_conditional_edges(
