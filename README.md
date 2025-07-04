@@ -403,3 +403,4 @@ Este proyecto está bajo la Licencia MIT. Ver el archivo [LICENSE](LICENSE) para
 <div align="center">
 <strong>🥗 NutriSense AI Agents - Revolucionando la nutrición con inteligencia artificial</strong>
 </div>
+# Deploy automático configurado
