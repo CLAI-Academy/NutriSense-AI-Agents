@@ -1,7 +1,6 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from nutrisense_agents.api.routes import router as api_router
-from nutrisense_agents.api.routes.img_analysis_route import router as img_analysis_router
 import json
 import logging
 from datetime import datetime
@@ -40,7 +39,6 @@ async def health_check():
     }
 
 app.include_router(api_router)
-app.include_router(img_analysis_router)
 
 class ConnectionManager:
     def __init__(self):

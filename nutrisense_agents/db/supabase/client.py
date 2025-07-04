@@ -4,6 +4,7 @@ from nutrisense_agents.config.settings import settings
 from supabase import create_client, Client
 import uuid
 import logging
+from datetime import date, datetime
 
 logger = logging.getLogger(__name__)
 
@@ -127,6 +128,8 @@ class SupabaseClient:
             "image_url": data.get("image_url"),
             "mood_emoji": data.get("mood_emoji"),
             "created_at": data.get("created_at", ""),
+            "compatibility": data.get("compatibility"),
+            "agent_observation": data.get("agent_observation"),
         }
 
         food_diary_data = {k: v for k, v in food_diary_data.items() if v is not None}
@@ -148,3 +151,184 @@ class SupabaseClient:
             except Exception as retry_error:
                 logger.error(f"❌ Error persiste después de refresh: {retry_error}")
                 raise retry_error
+
+    def check_and_update_user_streak(self, user_id: str) -> Dict[str, Any]:
+        """
+        Extrae datos de user_streak. Si updated_at es igual a la fecha de hoy, no hace nada.
+        Si no, incrementa current_streak en 1 y actualiza best_streak si es necesario.
+        
+        Args:
+            user_id: UUID del usuario
+            
+        Returns:
+            Dict con updated_streak (bool) y streak (int)
+        """
+        try:
+            # Obtener la fecha actual
+            today = date.today().isoformat()
+            
+            # Obtener el registro de streak del usuario
+            streak_result = (
+                self.supabase
+                .table("user_streak")
+                .select("current_streak, best_streak, updated_at")
+                .eq("user_id", user_id)
+                .execute()
+            )
+            
+            if not streak_result.data or len(streak_result.data) == 0:
+                # Usuario no existe, crear registro con streak = 1
+                logger.info(f"Usuario {user_id} no tiene registro de streak, creando nuevo")
+                return self._increment_user_streak(user_id)
+            
+            user_streak_data = streak_result.data[0]
+            updated_at = user_streak_data.get("updated_at")
+            
+            # Extraer solo la fecha de updated_at (sin hora)
+            if updated_at:
+                updated_date = datetime.fromisoformat(updated_at.replace('Z', '+00:00')).date().isoformat()
+            else:
+                updated_date = None
+            
+            # Si updated_at es igual a la fecha de hoy, no hacer nada
+            if updated_date == today:
+                logger.info(f"Usuario {user_id} ya fue actualizado hoy, no actualizando streak")
+                return {
+                    "updated_streak": False,
+                    "streak": user_streak_data.get("current_streak"),
+                    "message": "Usuario ya fue actualizado hoy"
+                }
+            
+            # Si no, incrementar el streak
+            logger.info(f"Usuario {user_id} no fue actualizado hoy, incrementando streak")
+            return self._increment_user_streak(user_id)
+            
+        except Exception as e:
+            logger.error(f"Error checking user streak: {e}")
+            return {
+                "updated_streak": False,
+                "streak": None,
+                "error": str(e)
+            }
+
+    def _increment_user_streak(self, user_id: str) -> Dict[str, Any]:
+        """
+        Incrementa el streak del usuario en la tabla user_streak.
+        También actualiza best_streak si current_streak supera el récord.
+        
+        Args:
+            user_id: UUID del usuario
+            
+        Returns:
+            Dict con updated_streak (bool) y streak (int)
+        """
+        try:
+            # Verificar si el usuario ya tiene un registro de streak
+            existing_streak = (
+                self.supabase
+                .table("user_streak")
+                .select("current_streak, best_streak")
+                .eq("user_id", user_id)
+                .execute()
+            )
+            
+            if existing_streak.data and len(existing_streak.data) > 0:
+                # Usuario existe, incrementar streak
+                current_streak = existing_streak.data[0]["current_streak"]
+                best_streak = existing_streak.data[0]["best_streak"] or 0
+                new_streak = current_streak + 1
+                
+                # Actualizar best_streak si el nuevo streak es mayor
+                new_best_streak = max(new_streak, best_streak)
+                
+                update_data = {
+                    "current_streak": new_streak,
+                    "best_streak": new_best_streak,
+                    "updated_at": datetime.now().isoformat()
+                }
+                
+                update_result = (
+                    self.supabase
+                    .table("user_streak")
+                    .update(update_data)
+                    .eq("user_id", user_id)
+                    .execute()
+                )
+                
+                logger.info(f"Streak actualizado para usuario {user_id}: {current_streak} -> {new_streak}, best: {new_best_streak}")
+                return {
+                    "updated_streak": True,
+                    "streak": new_streak,
+                    "best_streak": new_best_streak,
+                    "previous_streak": current_streak
+                }
+                
+            else:
+                # Usuario no existe, crear registro con streak = 1
+                insert_data = {
+                    "user_id": user_id,
+                    "current_streak": 1,
+                    "best_streak": 1,
+                    "updated_at": datetime.now().isoformat()
+                }
+                
+                insert_result = (
+                    self.supabase
+                    .table("user_streak")
+                    .insert(insert_data)
+                    .execute()
+                )
+                
+                logger.info(f"Nuevo streak creado para usuario {user_id}: 1")
+                return {
+                    "updated_streak": True,
+                    "streak": 1,
+                    "best_streak": 1,
+                    "previous_streak": 0
+                }
+                
+        except Exception as e:
+            logger.error(f"Error incrementing user streak: {e}")
+            return {
+                "updated_streak": False,
+                "streak": None,
+                "error": str(e)
+            }
+
+    def get_user_streak(self, user_id: str) -> Dict[str, Any]:
+        """
+        Obtiene el streak actual del usuario.
+        
+        Args:
+            user_id: UUID del usuario
+            
+        Returns:
+            Dict con el streak actual
+        """
+        try:
+            result = (
+                self.supabase
+                .table("user_streak")
+                .select("current_streak")
+                .eq("user_id", user_id)
+                .execute()
+            )
+            
+            if result.data and len(result.data) > 0:
+                return {
+                    "streak": result.data[0]["current_streak"],
+                    "exists": True
+                }
+            else:
+                return {
+                    "streak": 0,
+                    "exists": False
+                }
+                
+        except Exception as e:
+            logger.error(f"Error getting user streak: {e}")
+            return {
+                "streak": 0,
+                "exists": False,
+                "error": str(e)
+            }

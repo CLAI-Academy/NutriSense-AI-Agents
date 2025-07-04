@@ -1,103 +1,12 @@
-"""
-Prueba LOCAL del servicio de extracción de macronutrientes.
-Este script NO requiere conexión a Supabase ni configuración de base de datos.
-Solo necesita las API keys de OpenAI o Anthropic configuradas en .env
-"""
+# TEST LOCAL DE MACRONUTRIENTES - NO UTILIZADO ACTUALMENTE
+# Comentado el 2025-07-03 - Solo se usan food_analysis y nutrition_plan
+# Para reactivar, descomentar todo el código
 
-from nutrisense_agents.ai_companion.agents.macronutrient_agent import get_macronutrient_extraction_chain
+# Este archivo contiene test local del servicio de macronutrientes:
+# - test_local_macronutrient_extraction() - Prueba local sin BD
+# Solo usa IA para análisis, no requiere Supabase
 
-def test_local_macronutrient_extraction():
-    """
-    Prueba simple y local del extractor de macronutrientes.
-    Solo usa la IA, no guarda nada en base de datos.
-    """
-    
-    print("🥗 NUTRISENSE AI - PRUEBA LOCAL SIMPLE")
-    print("=" * 50)
-    print("📝 Analizando ingredientes con IA (sin base de datos)")
-    print("=" * 50)
-    print()
-    
-    # Inicializar la cadena de IA
-    try:
-        print("✅ Agente de IA listo para inicializar")
-    except Exception as e:
-        print(f"❌ Error al configurar IA: {str(e)}")
-        print("💡 Verifica que tengas configuradas las API keys en .env")
-        return
-    
-    # Ingredientes de prueba
-    test_ingredients = [
-        "100g de pechuga de pollo a la plancha",
-        "150g de arroz integral cocido", 
-        "80g de brócoli al vapor"
-    ]
-    
-    print(f"🔍 Analizando {len(test_ingredients)} ingredientes:")
-    for i, ingredient in enumerate(test_ingredients, 1):
-        print(f"   {i}. {ingredient}")
-    print()
-    
-    # Procesar cada ingrediente
-    results = []
-    total_calories = 0
-    total_protein = 0
-    total_carbs = 0
-    total_fat = 0
-    
-    for i, ingredient in enumerate(test_ingredients, 1):
-        print(f"🧠 Analizando ingrediente {i}/{len(test_ingredients)}...")
-        
-        try:
-            # Llamar a la IA
-            chain = get_macronutrient_extraction_chain()
-            result = chain.invoke({
-                "ingredients": [ingredient],
-                "meal_type": "almuerzo",
-                "preparation_method": "saludable",
-                "portion_size": "porción estándar",
-                "additional_notes": "Comida balanceada"
-            })
-            
-            results.append(result)
-            
-            # Mostrar resultado
-            print(f"   ✅ {result.name}")
-            print(f"   📊 {result.total_calories:.1f} kcal | "
-                  f"P: {result.total_protein:.1f}g | "
-                  f"C: {result.total_carbs:.1f}g | "
-                  f"G: {result.total_fat:.1f}g")
-            print(f"   🎯 Confianza: {result.confidence_score*100:.0f}%")
-            print()
-            
-            # Acumular totales
-            total_calories += result.total_calories
-            total_protein += result.total_protein
-            total_carbs += result.total_carbs
-            total_fat += result.total_fat
-            
-        except Exception as e:
-            print(f"   ❌ Error procesando '{ingredient}': {str(e)}")
-            print()
-            continue
-    
-    # Mostrar resumen final
-    if results:
-        print("=" * 50)
-        print("📊 RESUMEN NUTRICIONAL TOTAL:")
-        print(f"🔥 Calorías totales: {total_calories:.1f} kcal")
-        print(f"🥩 Proteínas totales: {total_protein:.1f}g")
-        print(f"🌾 Carbohidratos totales: {total_carbs:.1f}g")
-        print(f"🥑 Grasas totales: {total_fat:.1f}g")
-        print("=" * 50)
-        print(f"✅ Análisis completado: {len(results)}/{len(test_ingredients)} ingredientes procesados")
-    else:
-        print("❌ No se pudieron procesar los ingredientes")
-    
-    print()
-    print("🎉 ¡Prueba local completada!")
-    print("💡 Esta prueba solo usa IA, no guarda datos en base de datos")
+# TODO: Para reactivar, descomentar las 104 líneas originales
+# que implementan test local del extractor de macronutrientes
 
-
-if __name__ == "__main__":
-    test_local_macronutrient_extraction()
+pass  # Placeholder para evitar errores de sintaxis
