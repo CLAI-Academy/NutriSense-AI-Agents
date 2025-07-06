@@ -541,10 +541,20 @@ def analyze_nutritional_compatibility(state: FoodAnalysisState) -> Dict[str, Any
         
         # 1. Obtener targets del usuario desde user_health_profile
         user_targets = {}
+        user_name = {}
+        recent_foods = {}
         try:
             profile_result = supabase_client.supabase.table("user_health_profile").select(
                 "daily_calories_target, daily_protein_target, daily_carbs_target, daily_fat_target"
             ).eq("user_id", user_id).execute()
+            
+            user_name = supabase_client.supabase.table("profiles").select(
+                "full_name"
+            ).eq("id", user_id).execute()
+            
+            recent_foods = supabase_client.supabase.table("food_diary").select(
+                "food_name, calories, protein, carbs, fat"
+            ).eq("user_id", user_id).eq("date", date.today().isoformat()).execute()
             
             if profile_result.data and len(profile_result.data) > 0:
                 profile = profile_result.data[0]
@@ -590,13 +600,15 @@ def analyze_nutritional_compatibility(state: FoodAnalysisState) -> Dict[str, Any
         
         # 5. Llamar al agente de compatibilidad
         compatibility_chain = get_compatibility_agent_chain()
-        
         compatibility_result = compatibility_chain.invoke({
             "user_targets": user_targets,
             "daily_consumption": daily_consumption,
             "current_meal_macros": current_meal_macros,
-            "ingredients": ingredients
+            "ingredients": ingredients,
+            "user_name": user_name,
+            "recent_foods": recent_foods
         })
+        
         
         # Guardar datos en el estado para usar en el nodo de inserción
         return {

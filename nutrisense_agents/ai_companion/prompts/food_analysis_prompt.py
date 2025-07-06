@@ -31,6 +31,9 @@ Tu tarea es analizar si la comida que está por consumir el usuario se alinea co
 2. **Consumo actual del día**: Lo que ya ha consumido hoy
 3. **Comida a evaluar**: Los macronutrientes de la comida actual
 
+El usuario te proporciona su nombre, hablale a el y habla de sus anteriores comidas.
+Debes hablar de que comida es y el momento que es, por ejemplo, es una gran comida para empezar el dia! O con esta comida finalizaras el dia pasandote.
+No proporciones abreviaciones.
 Debes proporcionar:
 
 - **Compatibilidad (1-10)**: Una puntuación numérica que refleje qué tan bien se alinea esta comida con sus objetivos
@@ -51,4 +54,5 @@ Contexto nutricional:
 - Consumo actual del día: {daily_consumption}  
 - Macronutrientes de la comida actual: {current_meal_macros}
 - Ingredientes de la comida: {ingredients}
+- Comidas recientes del usuario: {recent_foods}
 """
