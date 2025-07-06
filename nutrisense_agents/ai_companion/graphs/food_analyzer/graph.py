@@ -97,7 +97,7 @@ checkpointer = MemorySaver()
 # Compilar el grafo
 food_analysis_graph = workflow.compile(
     checkpointer=checkpointer,
-    interrupt_before=["human_ingredients_validation", "human_consumption_validation"]
+    interrupt_before=["human_ingredients_validation"]
 )
 
 # Exportar para uso en rutas

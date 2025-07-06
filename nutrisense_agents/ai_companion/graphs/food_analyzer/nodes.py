@@ -232,98 +232,19 @@ def calc_macros(state: FoodAnalysisState) -> Dict[str, Any]:
 
 def human_consumption_validation(state: FoodAnalysisState) -> Dict[str, Any]:
     """
-    SEGUNDO INTERRUPT: Validación de consumo real
-    
-    El usuario puede:
-    1. Confirmar que comió todo (100%)
-    2. Ajustar el porcentaje consumido
-    3. Hacer ajustes manuales específicos
-    4. Agregar comidas adicionales
-    5. Cancelar el guardado
+    Validación de consumo automática - asume que el usuario consumió todo
     """
     
     calculated_macros = state.get("calculated_macros", {})
     
-    current_recipe_name = state.get("recipe_name")
-    current_ingredients = state.get("extracted_ingredients", [])
-    
-    consumption_payload = {
-        "calculated_macros": calculated_macros,
-        "recipe_name": current_recipe_name,
-        "extracted_ingredients": current_ingredients,
-        "extraction_type": state["extraction_type"],
-        "current_step": "awaiting_consumption_validation",
-        
-        # Opciones de consumo
-        "consumption_options": {
-            "percentage_options": [25, 50, 75, 100, 125, 150],
-            "manual_adjustment": True,
-            "can_add_extras": True,
-            "can_cancel": True,
-            
-            "example_responses": {
-                "consumed_all": {
-                    "calculated_macros": calculated_macros
-                },
-                "consumed_half": {
-                    "calculated_macros": {
-                        "calories": calculated_macros.get("calories", 0) * 0.5,
-                        "protein": calculated_macros.get("protein", 0) * 0.5,
-                        "carbs": calculated_macros.get("carbs", 0) * 0.5,
-                        "fat": calculated_macros.get("fat", 0) * 0.5,
-                        "fiber": calculated_macros.get("fiber", 0) * 0.5
-                    }
-                },
-                "manual_adjustment": {
-                    "calculated_macros": {
-                        "calories": 400,
-                        "protein": 25,
-                        "carbs": 30,
-                        "fat": 15,
-                        "fiber": 3
-                    },
-                    "adjustment_reason": "No comí todo el arroz"
-                },
-                "added_extras": {
-                    "calculated_macros": {
-                        "calories": calculated_macros.get("calories", 0) + 100,
-                        "protein": calculated_macros.get("protein", 0) + 5,
-                        "carbs": calculated_macros.get("carbs", 0) + 10,
-                        "fat": calculated_macros.get("fat", 0) + 5,
-                        "fiber": calculated_macros.get("fiber", 0) + 1
-                    },
-                    "additional_foods": ["pan", "postre"]
-                }
-            }
-        }
-    }
-    
-    user_response = interrupt(consumption_payload)
-    
-    if user_response.get("action") == "cancel":
-        return {
-            "current_step": "cancelled_by_user",
-            "action": "cancel",
-            "cancellation_reason": user_response.get("reason", "Proceso cancelado por el usuario")
-        }
-    
-    # Actualizar macros con los datos del usuario
+    # Asumir que el usuario consumió toda la comida (100%)
     updated_state = {
         "current_step": "consumption_validated",
-        "consumption_validation_completed": True
+        "consumption_validation_completed": True,
+        "calculated_macros": calculated_macros
     }
     
-    # Actualizar macros si el usuario los modificó
-    if "calculated_macros" in user_response:
-        updated_state["calculated_macros"] = user_response["calculated_macros"]
-        logger.info(f"🔄 Macros actualizados por usuario: {user_response['calculated_macros']}")
-    
-    # Agregar información adicional del usuario
-    if "adjustment_reason" in user_response:
-        updated_state["adjustment_reason"] = user_response["adjustment_reason"]
-    
-    if "additional_foods" in user_response:
-        updated_state["additional_foods"] = user_response["additional_foods"]
+    logger.info(f"✅ Consumo validado automáticamente: {calculated_macros}")
     
     return updated_state
 
