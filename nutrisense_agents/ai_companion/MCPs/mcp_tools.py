@@ -19,20 +19,13 @@ logger = logging.getLogger(__name__)
 # Tools que necesitan inyección de UID
 # ---------------------------------------------------------------------------
 TOOLS_REQUIRING_UID = {
-    "track_food",
-    "get_meal_plan",
-    "add_ingredient",
-    "add_recipe",
-    "add_recipe_ingredient",
-    "add_meal_plan",
     "add_planned_meal",
+    "create_meal_plan",
+    "add_planned_meal_to_schedule",
+    "optimize_meal_plan",
+    "get_meal_plan_summary",
     "add_food_diary",
-    "add_photo_analysis",
     "add_daily_summary",
-    "add_inventory",
-    "add_shopping_list",
-    "add_shopping_item",
-    "add_streak",
     "get_user_data",
 }
 

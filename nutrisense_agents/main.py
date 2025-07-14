@@ -116,7 +116,7 @@ if __name__ == "__main__":
     import os
     
     # CRÍTICO: Leer puerto de variable de entorno
-    port = int(os.environ.get("PORT", 8000))
+    port = int(os.environ.get("PORT", 8001))
     
     logger.info(f"Iniciando servidor en puerto {port}...")
     uvicorn.run(

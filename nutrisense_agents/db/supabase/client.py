@@ -295,6 +295,47 @@ class SupabaseClient:
                 "error": str(e)
             }
 
+    def get_user_health_profile_data(self, user_id: str) -> Dict[str, Any]:
+        """
+        Obtiene el resumen y plan nutricional del perfil de salud del usuario.
+        
+        Args:
+            user_id: UUID del usuario
+            
+        Returns:
+            Dict con summary y nutritional_plan
+        """
+        try:
+            result = (
+                self.supabase
+                .table("user_health_profile")
+                .select("summary,nutritional_plan")
+                .eq("user_id", user_id)
+                .execute()
+            )
+            
+            if result.data and len(result.data) > 0:
+                return {
+                    "summary": result.data[0].get("summary"),
+                    "nutritional_plan": result.data[0].get("nutritional_plan"),
+                    "exists": True
+                }
+            else:
+                return {
+                    "summary": None,
+                    "nutritional_plan": None, 
+                    "exists": False
+                }
+                
+        except Exception as e:
+            logger.error(f"Error getting user health profile data: {e}")
+            return {
+                "summary": None,
+                "nutritional_plan": None,
+                "exists": False,
+                "error": str(e)
+            }
+
     def get_user_streak(self, user_id: str) -> Dict[str, Any]:
         """
         Obtiene el streak actual del usuario.

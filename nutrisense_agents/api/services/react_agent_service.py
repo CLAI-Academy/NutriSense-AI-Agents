@@ -1,53 +1,66 @@
 """
 Servicio de creación e invocación del React Agent de NutriSense.
 
-Este módulo se limita a:
-1. Recuperar el modelo de chat.
-2. Obtener las tools protegidas que devuelve `mcp_tools`.
-3. Construir el grafo React Agent con LangGraph.
-4. Exponer funciones auxiliares para invocación normal y streaming.
+Este módulo se encarga de:
+1. Obtener los datos del perfil de salud del usuario
+2. Crear e invocar el React Agent con el contexto del usuario
+3. Exponer funciones para invocación normal y streaming
 """
 
-from typing import Dict, Any, List
+from typing import Dict, Any, List, AsyncGenerator
 
-from langgraph.prebuilt import create_react_agent
-
-from nutrisense_agents.config.agent_config import get_chat_model
-from nutrisense_agents.ai_companion.MCPs.mcp_tools import get_mcp_tools
-from nutrisense_agents.ai_companion.prompts.react_prompt import REACT_PROMPT
+from nutrisense_agents.ai_companion.agents.react_agent import create_nutrisense_react_agent
+from nutrisense_agents.db.supabase.client import SupabaseClient
 
 # ---------------------------------------------------------------------------
-# Construcción del agente
+# Funciones auxiliares
 # ---------------------------------------------------------------------------
 
-async def create_nutrisense_react_agent(user_uid: str):
-    """Compila y devuelve el React Agent ya preparado para el usuario."""
+async def get_user_health_data(user_uid: str) -> Dict[str, Any]:
+    """Obtiene los datos de salud del usuario."""
+    supabase = SupabaseClient()
+    return supabase.get_user_health_profile_data(user_uid)
 
-    model = get_chat_model("gpt")
-    tools = await get_mcp_tools(user_uid=user_uid)
-    return create_react_agent(model, tools, prompt=REACT_PROMPT)
+async def create_react_agent_service(user_uid: str) -> Any:
+    """Prepara el React Agent con los datos del usuario."""
+    # Obtener datos del perfil de salud
+    user_data = await get_user_health_data(user_uid)
+    
+    return await create_nutrisense_react_agent(
+        user_uid=user_uid,
+        user_sheet=user_data.get("summary", "No hay ficha disponible"),
+        user_plan=user_data.get("nutritional_plan", "No hay plan nutricional disponible")
+    )
 
 # ---------------------------------------------------------------------------
-# Invocación estándar
+# API pública del servicio
 # ---------------------------------------------------------------------------
 
 async def invoke_nutrisense_react_agent(
-    user_uid: str, messages: List[Dict[str, Any]]
-):
-    """Invoca el agente con una lista de mensajes y devuelve la respuesta."""
-
-    agent = await create_nutrisense_react_agent(user_uid)
+    user_uid: str, 
+    messages: List[Dict[str, Any]]
+) -> Dict[str, Any]:
+    """
+    Invoca el agente de forma síncrona y devuelve la respuesta completa.
+    
+    Args:
+        user_uid: ID del usuario
+        messages: Lista de mensajes en formato [{role: str, content: str}]
+    """
+    agent = await create_react_agent_service(user_uid)
     return await agent.ainvoke({"messages": messages})
 
-# ---------------------------------------------------------------------------
-# Invocación en streaming
-# ---------------------------------------------------------------------------
-
 async def stream_nutrisense_react_agent(
-    user_uid: str, messages: List[Dict[str, Any]]
-):
-    """Generador asíncrono que produce los chunks de respuesta en tiempo real."""
-
-    agent = await create_nutrisense_react_agent(user_uid)
+    user_uid: str, 
+    messages: List[Dict[str, Any]]
+) -> AsyncGenerator[Dict[str, Any], None]:
+    """
+    Invoca el agente de forma asíncrona y devuelve un generador de chunks.
+    
+    Args:
+        user_uid: ID del usuario
+        messages: Lista de mensajes en formato [{role: str, content: str}]
+    """
+    agent = await create_react_agent_service(user_uid)
     async for chunk in agent.astream({"messages": messages}):
         yield chunk
