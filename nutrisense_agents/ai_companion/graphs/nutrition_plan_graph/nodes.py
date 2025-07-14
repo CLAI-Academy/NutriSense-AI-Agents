@@ -1,13 +1,13 @@
 from typing import Dict, Any
-from nutrisense_agents.ai_companion.graphs.nutrition_plan_graph.state import NutritionPlanState
-from nutrisense_agents.ai_companion.agents.nutrition_plan_agent import nutrition_target_agent, get_nutrition_plan_agent_chain, get_summary_agent
-from nutrisense_agents.ai_companion.schemas.nutrition_plan_schema import NutritionTargetSchema, NutritionPlanSchema
+from nutrisense_agents.ai_companion.graphs.nutrition_plan_graph.state import UserProfileState
+from nutrisense_agents.ai_companion.agents.user_profile_agent import nutrition_target_agent, get_user_profile_agent_chain, get_profile_summary_agent
+from nutrisense_agents.ai_companion.schemas.user_profile_schema import NutritionTargetSchema, UserNutritionProfileSchema
 from nutrisense_agents.db.supabase.client import SupabaseClient
 import logging
 
 logger = logging.getLogger(__name__)
 
-def calculate_nutrition_targets(state: NutritionPlanState) -> Dict[str, Any]:
+def calculate_nutrition_targets(state: UserProfileState) -> Dict[str, Any]:
     """
     Primer nodo: Calcula objetivos nutricionales usando nutrition_target_agent
     """
@@ -131,13 +131,13 @@ def calculate_basic_targets(user_data: Dict[str, Any]) -> NutritionTargetSchema:
         grasas=fat
     )
 
-def generate_nutrition_plan(state: NutritionPlanState) -> Dict[str, Any]:
+def generate_user_profile(state: UserProfileState) -> Dict[str, Any]:
     """
-    Segundo nodo: Genera el plan nutricional completo usando los objetivos calculados
+    Segundo nodo: Genera el perfil nutricional con directrices generales usando los objetivos calculados
     """
     try:
-        # Obtener el agente para generar el plan
-        nutrition_plan_chain = get_nutrition_plan_agent_chain()
+        # Obtener el agente para generar el perfil
+        user_profile_chain = get_user_profile_agent_chain()
         
         # Preparar datos incluyendo los objetivos calculados
         user_data = {
@@ -180,29 +180,29 @@ def generate_nutrition_plan(state: NutritionPlanState) -> Dict[str, Any]:
             "weight_target": state.get("weight_target")
         }
         
-        # Generar el plan nutricional
-        result = nutrition_plan_chain.invoke(user_data)
+        # Generar el perfil nutricional
+        result = user_profile_chain.invoke(user_data)
         
-        logger.info(f"Plan nutricional generado: {result.name}")
+        logger.info(f"Perfil nutricional generado: {result.profile_name}")
         
         return {
-            "nutrition_plan": result
+            "user_profile": result
         }
         
     except Exception as e:
-        logger.error(f"Error generando plan nutricional: {str(e)}")
+        logger.error(f"Error generando perfil nutricional: {str(e)}")
         return {
-            "error": f"Error generando plan nutricional: {str(e)}"
+            "error": f"Error generando perfil nutricional: {str(e)}"
         }
 
     
-def generate_summary(state: NutritionPlanState) -> Dict[str, Any]:
+def generate_summary(state: UserProfileState) -> Dict[str, Any]:
     """
-    Tercer nodo: Genera resumen conversacional del plan nutricional
+    Tercer nodo: Genera resumen conversacional del perfil nutricional
     """
     try:
         # Obtener el agente de resumen
-        summary_agent = get_summary_agent()
+        summary_agent = get_profile_summary_agent()
         
         # Preparar datos para el agente de resumen
         summary_data = {
@@ -233,7 +233,7 @@ def generate_summary(state: NutritionPlanState) -> Dict[str, Any]:
             "daily_carbs_target": state["nutrition_targets"].carbs,
             "daily_fat_target": state["nutrition_targets"].grasas,
             "weight_target": state.get("weight_target"),
-            "nutrition_plan_description": state["nutrition_plan"].description if state["nutrition_plan"] else ""
+            "user_profile_summary": state["user_profile"].user_summary if state["user_profile"] else ""
         }
         
         # Generar el resumen conversacional
@@ -251,23 +251,20 @@ def generate_summary(state: NutritionPlanState) -> Dict[str, Any]:
             "error": f"Error generando resumen: {str(e)}"
         }
 
-def save_to_database(state: NutritionPlanState) -> Dict[str, Any]:
+def save_to_database(state: UserProfileState) -> Dict[str, Any]:
     """
-    Cuarto nodo: Prepara los datos y guarda el plan nutricional completo en user_health_profile
+    Cuarto nodo: Prepara los datos y guarda el perfil nutricional completo en user_health_profile
     """
     try:
         supabase_client = SupabaseClient()
         
-        # Preparar datos del plan (moved from prepare_plan_data)
-        nutrition_plan = state["nutrition_plan"]
+        # Preparar datos del perfil
+        user_profile = state["user_profile"]
         
-        # Convertir el plan completo a JSON para preservar toda la estructura del schema
-        nutrition_plan_json = nutrition_plan.model_dump()
+        # Convertir el perfil completo a JSON para preservar toda la estructura del schema
+        user_profile_json = user_profile.model_dump()
         
-        # Preparar datos de recetas para la base de datos
-        recipes_data = [recipe.model_dump() for recipe in nutrition_plan.recipes]
-        
-        logger.info(f"Datos del plan preparados - {len(recipes_data)} recetas")
+        logger.info(f"Datos del perfil preparados - {user_profile.profile_name}")
         
         # Preparar datos completos para user_health_profile (sin user_id en el dict)
         health_profile_data = {
@@ -282,8 +279,7 @@ def save_to_database(state: NutritionPlanState) -> Dict[str, Any]:
             "weight_target": state.get("weight_target"),
             "cooking_lifestyle": generate_cooking_lifestyle_summary(state),
             "summary": state["summary"],  # Usar el resumen conversacional generado
-            "nutritional_plan": nutrition_plan_json,  # Guardar como JSON completo
-            "recommended_recipes": recipes_data
+            "user_nutrition_profile": user_profile_json  # Guardar como JSON completo
         }
         
         # Guardar el perfil completo en la base de datos
@@ -299,14 +295,13 @@ def save_to_database(state: NutritionPlanState) -> Dict[str, Any]:
                 "db_response": response
             }
         
-        logger.info(f"Plan nutricional y perfil de salud guardado exitosamente para usuario {state['user_id']}")
+        logger.info(f"Perfil nutricional y perfil de salud guardado exitosamente para usuario {state['user_id']}")
         
         return {
             "success": True,
             "db_response": response,
             "health_profile_data": health_profile_data,
-            "nutrition_plan_json": nutrition_plan_json,
-            "recipes_data": recipes_data
+            "user_profile_json": user_profile_json
         }
         
     except Exception as e:
@@ -317,7 +312,7 @@ def save_to_database(state: NutritionPlanState) -> Dict[str, Any]:
         }
 
 
-def generate_cooking_lifestyle_summary(state: NutritionPlanState) -> str:
+def generate_cooking_lifestyle_summary(state: UserProfileState) -> str:
     """
     Genera un resumen del estilo de vida culinario del usuario
     """

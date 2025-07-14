@@ -1,9 +1,9 @@
 from typing import TypedDict, List, Optional, Dict, Any
-from nutrisense_agents.ai_companion.schemas.nutrition_plan_schema import NutritionTargetSchema, NutritionPlanSchema
+from nutrisense_agents.ai_companion.schemas.user_profile_schema import NutritionTargetSchema, UserNutritionProfileSchema
 
 
-class NutritionPlanState(TypedDict):
-    """Estado principal del flujo de generación de plan nutricional"""
+class UserProfileState(TypedDict):
+    """Estado principal del flujo de generación de perfil nutricional"""
     
     # Datos de entrada del usuario
     user_id: str
@@ -56,12 +56,8 @@ class NutritionPlanState(TypedDict):
     # Objetivos nutricionales calculados por el primer agente
     nutrition_targets: Optional[NutritionTargetSchema]
     
-    # Plan nutricional generado
-    nutrition_plan: Optional[NutritionPlanSchema]
-    
-    # Datos para guardar en base de datos
-    markdown_plan: Optional[str]
-    recipes_data: Optional[List[Dict[str, Any]]]
+    # Perfil nutricional generado
+    user_profile: Optional[UserNutritionProfileSchema]
     
     # Resumen conversacional generado
     summary: Optional[str]
