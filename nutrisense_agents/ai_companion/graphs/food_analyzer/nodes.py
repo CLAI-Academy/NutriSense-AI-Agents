@@ -6,6 +6,8 @@ from nutrisense_agents.ai_companion.agents.food_extraction_agent import get_imag
 from nutrisense_agents.ai_companion.agents.macronutrient_agent import get_macronutrient_extraction_chain
 from nutrisense_agents.utils.get_meal_type import get_type_meal
 from nutrisense_agents.db.supabase.client import SupabaseClient
+from openai import OpenAI
+from nutrisense_agents.config.agent_config import get_openai_api_key
 import uuid
 import logging
 logger = logging.getLogger(__name__)
@@ -393,11 +395,13 @@ def insert_food_diary(state: FoodAnalysisState) -> Dict[str, Any]:
         compatibility_result = state.get("compatibility_result", {})
         compatibility = compatibility_result.get("compatibility")
         agent_observation = compatibility_result.get("agent_observation")
+        audio_url = state.get("audio_url")
         
         logger.info(f"🔍 DEBUG - Macros filtrados: {filtered_macros}")
         logger.info(f"🔍 DEBUG - Image URL: {image_url}")
         logger.info(f"🔍 DEBUG - Compatibilidad: {compatibility}")
         logger.info(f"🔍 DEBUG - Observación del agente: {agent_observation}")
+        logger.info(f"🔍 DEBUG - Audio URL: {audio_url}")
         
         # Preparar datos para food_diary según el esquema
         food_diary_data = {
@@ -418,7 +422,8 @@ def insert_food_diary(state: FoodAnalysisState) -> Dict[str, Any]:
             "created_at": now.isoformat(),
             "image_url": image_url,
             "compatibility": compatibility,
-            "agent_observation": agent_observation
+            "agent_observation": agent_observation,
+            "audio_url": audio_url
         }
         
         user_id = state.get("user_id", "default_user")
@@ -440,7 +445,8 @@ def insert_food_diary(state: FoodAnalysisState) -> Dict[str, Any]:
                     "total_calories": filtered_macros.get("calories", 0),
                     "modifications_made": bool(state.get("user_notes") or state.get("adjustment_reason")),
                     "additional_foods": state.get("additional_foods", []),
-                    "extraction_type": state.get("extraction_type")
+                    "extraction_type": state.get("extraction_type"),
+                    "audio_url": state.get("audio_url")
                 }
             }
         else:
@@ -609,6 +615,26 @@ def analyze_nutritional_compatibility(state: FoodAnalysisState) -> Dict[str, Any
             "recent_foods": recent_foods
         })
         
+        # 6. Generar audio TTS si está habilitado para el usuario
+        audio_url = None
+        try:
+            # Verificar si el usuario tiene habilitado el audio
+            profiles_result = supabase_client.supabase.table("profiles").select(
+                "audios"
+            ).eq("id", user_id).execute()
+            
+            if profiles_result.data and len(profiles_result.data) > 0:
+                audios_enabled = profiles_result.data[0].get("audios", False)
+                
+                if audios_enabled:
+                    audio_url = generate_tts_audio(compatibility_result.agent_observation, user_id)
+                    logger.info(f"Audio TTS generado: {audio_url}")
+                else:
+                    logger.info("Usuario no tiene habilitado el audio TTS")
+            else:
+                logger.info("No se encontró perfil del usuario para verificar configuración de audio")
+        except Exception as e:
+            logger.error(f"Error generando audio TTS: {e}")
         
         # Guardar datos en el estado para usar en el nodo de inserción
         return {
@@ -618,6 +644,7 @@ def analyze_nutritional_compatibility(state: FoodAnalysisState) -> Dict[str, Any
             },
             "user_targets": user_targets,
             "daily_consumption": daily_consumption,
+            "audio_url": audio_url,
             "current_step": "compatibility_analyzed"
         }
         
@@ -631,3 +658,41 @@ def analyze_nutritional_compatibility(state: FoodAnalysisState) -> Dict[str, Any
             "current_step": "compatibility_error",
             "error": f"Error en análisis de compatibilidad: {str(e)}"
         }
+
+def generate_tts_audio(text: str, user_id: str) -> str:
+    """Genera audio TTS usando OpenAI y lo sube a Supabase"""
+    try:
+        client = OpenAI(api_key=get_openai_api_key())
+        
+        # Generar audio
+        response = client.audio.speech.create(
+            model="tts-1",
+            voice="nova",
+            input=text
+        )
+        
+        # Crear nombre único para el archivo
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"compatibility_audio_{user_id}_{timestamp}.mp3"
+        
+        # Subir a Supabase Storage
+        supabase_client = SupabaseClient()
+        
+        # Subir archivo al bucket
+        upload_result = supabase_client.supabase.storage.from_("audios").upload(
+            filename, 
+            response.content,
+            file_options={"content-type": "audio/mpeg"}
+        )
+        
+        logger.info(f"Upload result: {upload_result}")
+        
+        # Obtener URL pública del archivo (asumimos que se subió correctamente si no hay excepción)
+        public_url = supabase_client.supabase.storage.from_("audios").get_public_url(filename)
+        
+        logger.info(f"Audio TTS generado y subido exitosamente: {public_url}")
+        return public_url
+        
+    except Exception as e:
+        logger.error(f"Error generando audio TTS: {e}")
+        return None

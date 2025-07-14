@@ -3,6 +3,10 @@ from langchain_anthropic import ChatAnthropic
 from langchain_groq import ChatGroq
 from nutrisense_agents.config.settings import settings
 
+def get_openai_api_key() -> str:
+    """Devuelve la clave API de OpenAI"""
+    return settings.OPENAI_API_KEY
+
 def get_chat_model(model_type: str, temperature: float = 0.7, streaming: bool = False):
     """
     Devuelve un modelo de chat basado en el tipo especificado.

@@ -130,6 +130,7 @@ class SupabaseClient:
             "created_at": data.get("created_at", ""),
             "compatibility": data.get("compatibility"),
             "agent_observation": data.get("agent_observation"),
+            "audio_url": data.get("audio_url"),
         }
 
         food_diary_data = {k: v for k, v in food_diary_data.items() if v is not None}
