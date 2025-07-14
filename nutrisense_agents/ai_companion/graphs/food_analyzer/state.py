@@ -47,6 +47,7 @@ class FoodAnalysisState(TypedDict):
     compatibility_result: Optional[Dict[str, Any]]
     user_targets: Optional[Dict[str, float]]
     daily_consumption: Optional[Dict[str, float]]
+    audio_url: Optional[str]
     
     # Control de flujo
     current_step: Optional[str]
