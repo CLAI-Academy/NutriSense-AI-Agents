@@ -255,6 +255,7 @@ def save_to_database(state: UserProfileState) -> Dict[str, Any]:
     """
     Cuarto nodo: Prepara los datos y guarda el perfil nutricional completo en user_health_profile
     """
+    print("🔍 DEBUG: ===== INICIO save_to_database =====")
     try:
         supabase_client = SupabaseClient()
         
@@ -265,6 +266,7 @@ def save_to_database(state: UserProfileState) -> Dict[str, Any]:
         user_profile_json = user_profile.model_dump()
         
         logger.info(f"Datos del perfil preparados - {user_profile.profile_name}")
+        logger.info(f"�� DEBUG: user_id del estado: {state['user_id']}")
         
         # Preparar datos completos para user_health_profile (sin user_id en el dict)
         health_profile_data = {
@@ -281,6 +283,7 @@ def save_to_database(state: UserProfileState) -> Dict[str, Any]:
             "summary": state["summary"],  # Usar el resumen conversacional generado
             "user_nutrition_profile": user_profile_json  # Guardar como JSON completo
         }
+        logger.info(f"🔍 DEBUG: Datos de health_profile preparados: {list(health_profile_data.keys())}")
         
         # Guardar el perfil completo en la base de datos
         response = supabase_client.update_complete_health_profile(

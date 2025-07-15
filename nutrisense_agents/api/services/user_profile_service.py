@@ -74,6 +74,7 @@ def generate_user_profile_service(user_data: dict, user_id: str):
 if __name__ == "__main__":
     import json
     import os
+    import uuid
     
     raw_json = '''{
         "age": 30,
@@ -82,9 +83,9 @@ if __name__ == "__main__":
         "height": 186,
         "activity_level": "moderado",
         "goal": "perder peso",
-        "preferences": "ninguna",
-        "allergies": "gluten",
-        "medical_conditions": "ninguna",
+        "preferences": ["ninguna"],
+        "allergies": ["gluten"],
+        "medical_conditions": ["ninguna"],
         "breakfast": "chocolate y helado",
         "lunch": "hamburguesa de mcdonalds",
         "snack": "nada",
@@ -114,9 +115,18 @@ if __name__ == "__main__":
         "weight_target": 86
     }'''
     user_data = json.loads(raw_json)
+    user_id = "8f1c5532-f0f2-408a-87a6-d29e3e66312c"
 
-    result = generate_user_profile_service(user_data, "test-user-id")
-    profile = result.get("user_profile", {})
+    result = generate_user_profile_service(user_data, user_id)
+    
+    # Imprimir el resultado completo para debug
+    print("=== RESULTADO COMPLETO ===")
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    
+    profile = result.get("user_profile_json", {})
+    
+    print("\n=== PERFIL EXTRAÍDO ===")
+    print(json.dumps(profile, ensure_ascii=False, indent=2))
 
     # Guardar el resultado en un archivo JSON
     # Crear la carpeta 'outputs' si no existe
@@ -127,5 +137,5 @@ if __name__ == "__main__":
     output_path = os.path.join(output_dir, "user_profile.json")
     with open("user_profile.json", "w", encoding="utf-8") as f:
         json.dump(profile, f, ensure_ascii=False, indent=2)
-
-    print(json.dumps(profile, ensure_ascii=False, indent=2))
+    
+    print(f"\n✅ Perfil guardado en: {output_path}")

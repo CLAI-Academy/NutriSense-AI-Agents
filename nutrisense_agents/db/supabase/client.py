@@ -55,7 +55,11 @@ class SupabaseClient:
             return None
 
     def _update_health_profile(self, user_id: UUID, **fields) -> Dict[str, Any]:
+        print("🔍 DEBUG: ===== INICIO _update_health_profile =====", list(fields.keys()))
         try:
+            logger.info(f"🔍 DEBUG: Iniciando _update_health_profile para user_id: {user_id}")
+            logger.info(f"🔍 DEBUG: Campos recibidos: {list(fields.keys())}")
+
             # First, check if the profile exists
             existing_profile = (
                 self.supabase
@@ -64,9 +68,11 @@ class SupabaseClient:
                 .eq("user_id", str(user_id))
                 .execute()
             )
-            
+            logger.info(f"🔍 DEBUG: Perfil existente encontrado: {len(existing_profile.data) if existing_profile.data else 0}")
+        
             if existing_profile.data and len(existing_profile.data) > 0:
                 # Profile exists, update it
+                logger.info(f"🔍 DEBUG: Actualizando perfil existente para user_id: {user_id}")
                 update = (
                     self.supabase
                     .table("user_health_profile")
