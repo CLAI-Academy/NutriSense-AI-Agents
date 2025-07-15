@@ -1,128 +1,97 @@
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 
+class FoodPreference(BaseModel):
+    food_name: str
+    food_image: str
+    liked: bool
+
 class UserProfileInputSchema(BaseModel):
     user_id: str
     age: int
-    gender: str
+    gender: str = Field(..., description="Options: male|female|other")
     weight: float
-    height: int
-    activity_level: str
-    goal: str
-    preferences: Optional[List[str]] = []
-    allergies: Optional[List[str]] = []
-    medical_conditions: Optional[List[str]] = []
+    height: float
+    activity_level: str = Field(..., description="Options: sedentary|light|moderate|active|very-active")
+    goal: str = Field(..., description="Options: lose-weight|gain-weight|maintain|muscle-gain|health")
+    preferences: List[str] = Field(default_factory=list)
+    allergies: List[str] = Field(default_factory=list)
+    medical_conditions: List[str] = Field(default_factory=list)
 
-    breakfast: Optional[str] = None
-    lunch: Optional[str] = None
-    snack: Optional[str] = None
-    dinner: Optional[str] = None
+    breakfast: str = Field(default="")
+    lunch: str = Field(default="")
+    snack: str = Field(default="")
+    dinner: str = Field(default="")
 
-    work_mode: Optional[str] = None
-    shift_type: Optional[str] = None
-    lunch_place: Optional[str] = None
+    work_mode: str = Field(..., description="Options: home|office|hybrid")
+    shift_type: str = Field(..., description="Options: fixed|rotating")
+    lunch_place: str = Field(..., description="Options: home|work|packed")
 
-    who_cooks: Optional[str] = None
-    who_shops: Optional[str] = None
-    cook_for_others: Optional[bool] = None
+    who_cooks: str = Field(..., description="Options: me|partner|family|shared|none")
+    who_shops: str = Field(..., description="Options: me|partner|family|shared|delivery")
+    cook_for_others: str = Field(..., description="Options: myself|couple|family|varies")
 
-    weekend_diff: Optional[str] = None
+    weekend_diff: str = Field(..., description="Options: maintain|flexible|different|disorganized")
 
-    cooking_frequency: Optional[str] = None
-    cooking_time: Optional[str] = None
-    cooking_likes: Optional[str] = None
-    ultraprocessed_frequency: Optional[str] = None
+    cooking_frequency: str = Field(..., description="Options: daily|weekly|rarely|never")
+    cooking_time: str = Field(..., description="Options: very-little|some|enough")
+    cooking_likes: str = Field(..., description="Options: love|like|neutral|dislike")
+    ultraprocessed_frequency: str = Field(..., description="Options: never|rarely|weekly|frequent|daily")
 
-    weight_history: Optional[str] = None
-    weight_changes: Optional[str] = None
-    weight_events: Optional[str] = None
+    weight_history: str = Field(default="")
+    weight_changes: str = Field(default="")
+    weight_events: str = Field(default="")
 
-    current_difficulties: Optional[str] = None
-    emotional_eating: Optional[bool] = None
-    snacking: Optional[bool] = None
-    alcohol_intake: Optional[bool] = None
+    current_difficulties: str = Field(default="")
+    emotional_eating: str = Field(..., description="Options: por_hambre|por_emocion")
+    snacking: str = Field(..., description="Options: nunca|raramente|algunas_veces|frecuentemente|constantemente")
+    alcohol_intake: str = Field(..., description="Options: never|rarely|weekly|regular|daily")
 
-    daily_calories_target: Optional[int] = None
-    daily_protein_target: Optional[float] = None
-    daily_carbs_target: Optional[float] = None
-    daily_fat_target: Optional[float] = None
-    weight_target: Optional[float] = None
+    weight_target: str = Field(default="")
+    food_preferences: List[FoodPreference] = Field(default_factory=list)
 
 
-class MealGuideline(BaseModel):
-    """Directrices generales para cada comida"""
-    recommended_proteins: List[str] = Field(..., description="Tipos de proteínas recomendadas (categorías generales)")
-    recommended_carbs: List[str] = Field(..., description="Tipos de carbohidratos recomendados (categorías generales)")
-    recommended_vegetables: Optional[List[str]] = Field(default=None, description="Tipos de vegetales recomendados")
-    recommended_fruits: Optional[List[str]] = Field(default=None, description="Tipos de frutas recomendadas")
-    recommended_fats: Optional[List[str]] = Field(default=None, description="Tipos de grasas saludables recomendadas")
-    portion_guidelines: str = Field(..., description="Guías generales de porciones para esta comida")
-    meal_timing: Optional[str] = Field(default=None, description="Recomendaciones sobre horarios para esta comida")
-    preparation_tips: List[str] = Field(..., description="Tips generales de preparación para esta comida")
-
-
-class LifestyleFactors(BaseModel):
-    """Factores del estilo de vida que influyen en la alimentación"""
-    work_schedule: Optional[str] = Field(default=None, description="Horarios de trabajo y su impacto")
-    cooking_availability: Optional[str] = Field(default=None, description="Disponibilidad y habilidad para cocinar")
-    meal_organization: Optional[str] = Field(default=None, description="Organización de comidas y compras")
-    social_eating: Optional[str] = Field(default=None, description="Contexto social de las comidas")
-    weekend_patterns: Optional[str] = Field(default=None, description="Diferencias en patrones de fin de semana")
-
-
-class DietaryConsiderations(BaseModel):
-    """Consideraciones dietéticas específicas"""
-    allergies_impact: Optional[str] = Field(default=None, description="Cómo las alergias afectan las elecciones alimentarias")
-    preferences_integration: Optional[str] = Field(default=None, description="Cómo integrar las preferencias en el plan")
-    medical_adaptations: Optional[str] = Field(default=None, description="Adaptaciones necesarias por condiciones médicas")
-    emotional_eating_strategies: Optional[str] = Field(default=None, description="Estrategias para el manejo del comer emocional")
-
-
-class GeneralRecommendations(BaseModel):
-    """Recomendaciones generales para organización y éxito"""
-    meal_prep_suggestions: List[str] = Field(..., description="Sugerencias para preparación de comidas")
-    shopping_tips: List[str] = Field(..., description="Tips para hacer compras eficientes")
-    time_management: List[str] = Field(..., description="Manejo del tiempo en la cocina")
-    habit_building: List[str] = Field(..., description="Estrategias para crear hábitos sostenibles")
-    progress_tracking: List[str] = Field(..., description="Cómo monitorear el progreso")
-
-
-class NutritionTargetSchema(BaseModel):
+class   NutritionTargetSchema(BaseModel):
     """Objetivos nutricionales calculados"""
     calories: int = Field(description="Objetivo diario de calorías")
     protein: int = Field(description="Objetivo diario de proteínas en gramos")
     carbs: int = Field(description="Objetivo diario de carbohidratos en gramos")
     grasas: int = Field(description="Objetivo diario de grasas en gramos")
 
+    def dict(self, *args, **kwargs):
+        return {
+            "calories": self.calories,
+            "protein": self.protein,
+            "carbs": self.carbs,
+            "grasas": self.grasas
+        }
+        
+    def __json__(self):
+        return self.dict()
 
-class UserNutritionProfileSchema(BaseModel):
-    """Schema principal de la ficha de usuario"""
-    profile_name: str = Field(..., description="Nombre descriptivo del perfil")
-    user_summary: str = Field(..., description="Resumen personalizado del usuario y sus objetivos")
+class UserProfileSheet(BaseModel):
+    """Schema para la ficha informativa del usuario"""
+    profile_name: str = Field(..., description="Nombre del perfil nutricional")
+    user_summary : str = Field(..., description="Resumen conversacional del perfil nutricional en formato de guión")
+    nombre: str = Field(..., description="Nombre del usuario")
+    edad: int = Field(..., description="Edad del usuario")
+    peso: float = Field(..., description="Peso actual en kg")
+    altura: int = Field(..., description="Altura en cm")
+    imc: float = Field(..., description="Índice de masa corporal")
+    nivel_actividad: str = Field(..., description="Nivel de actividad física")
+    objetivo_principal: str = Field(..., description="Objetivo principal del usuario")
     
-    # Objetivos nutricionales
-    nutrition_targets: NutritionTargetSchema = Field(..., description="Objetivos nutricionales calculados")
+    # Preferencias y restricciones unificadas
+    preferencias_y_restricciones: str = Field(..., description="Descripción informativa de las preferencias alimentarias, alergias, intolerancias y condiciones médicas del usuario")
     
-    # Directrices por comidas
-    breakfast_guidelines: MealGuideline = Field(..., description="Directrices para el desayuno")
-    lunch_guidelines: MealGuideline = Field(..., description="Directrices para el almuerzo")
-    snack_guidelines: MealGuideline = Field(..., description="Directrices para la merienda")
-    dinner_guidelines: MealGuideline = Field(..., description="Directrices para la cena")
+    # Hábitos y contexto de vida unificados
+    habitos_y_contexto: str = Field(..., description="Descripción de los hábitos alimentarios del usuario, incluyendo comidas típicas, contexto laboral, organización de comidas y estilo de vida")
     
-    # Colaciones opcionales
-    optional_snacks: List[str] = Field(..., description="Opciones de colaciones saludables entre comidas")
+    # Objetivos nutricionales calculados
+    objetivos_nutricionales: NutritionTargetSchema = Field(..., description="Objetivos nutricionales calculados")
     
-    # Contexto del estilo de vida
-    lifestyle_factors: LifestyleFactors = Field(..., description="Factores del estilo de vida")
-    
-    # Consideraciones dietéticas
-    dietary_considerations: DietaryConsiderations = Field(..., description="Consideraciones dietéticas específicas")
-    
-    # Recomendaciones generales
-    general_recommendations: GeneralRecommendations = Field(..., description="Recomendaciones generales")
-    
-    # Notas adicionales
-    special_notes: Optional[str] = Field(default=None, description="Notas especiales o consideraciones adicionales")
+    # Dificultades y observaciones generales
+    dificultades_y_observaciones: str = Field(default="", description="Dificultades actuales reportadas y observaciones adicionales del análisis nutricional")
 
 
 class ProfileSummarySchema(BaseModel):

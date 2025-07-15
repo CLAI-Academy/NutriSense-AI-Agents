@@ -1,5 +1,5 @@
 from langchain_core.prompts import ChatPromptTemplate
-from nutrisense_agents.ai_companion.schemas.user_profile_schema import UserNutritionProfileSchema, NutritionTargetSchema, ProfileSummarySchema
+from nutrisense_agents.ai_companion.schemas.user_profile_schema import UserProfileSheet, NutritionTargetSchema, ProfileSummarySchema
 from nutrisense_agents.config.agent_config import get_chat_model
 from nutrisense_agents.ai_companion.prompts.user_profile_prompt import USER_PROFILE_PROMPT, USER_PROFILE_TARGETS_PROMPT, PROFILE_SUMMARY_PROMPT
 
@@ -68,7 +68,7 @@ def get_user_profile_agent_chain():
     """
     Agente para generar perfil nutricional del usuario con directrices generales
     """
-    model = get_chat_model(model_type="gpt", temperature=0.3).with_structured_output(UserNutritionProfileSchema)
+    model = get_chat_model(model_type="gpt", temperature=0.3).with_structured_output(UserProfileSheet)
 
     prompt = ChatPromptTemplate([
         ("system", USER_PROFILE_PROMPT),

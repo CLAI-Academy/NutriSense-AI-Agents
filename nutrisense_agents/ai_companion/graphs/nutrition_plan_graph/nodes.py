@@ -1,7 +1,7 @@
 from typing import Dict, Any
 from nutrisense_agents.ai_companion.graphs.nutrition_plan_graph.state import UserProfileState
 from nutrisense_agents.ai_companion.agents.user_profile_agent import nutrition_target_agent, get_user_profile_agent_chain, get_profile_summary_agent
-from nutrisense_agents.ai_companion.schemas.user_profile_schema import NutritionTargetSchema, UserNutritionProfileSchema
+from nutrisense_agents.ai_companion.schemas.user_profile_schema import NutritionTargetSchema, UserProfileSheet
 from nutrisense_agents.db.supabase.client import SupabaseClient
 import logging
 
@@ -53,20 +53,13 @@ def calculate_nutrition_targets(state: UserProfileState) -> Dict[str, Any]:
         # Invocar el agente para calcular objetivos
         result = nutrition_target_chain.invoke(user_data)
         
-        # El resultado debería ser un NutritionPlanSchema, pero necesitamos solo los targets
-        # Extraer los objetivos nutricionales calculados
-        if hasattr(result, 'plan') and hasattr(result.plan, 'desayuno'):
-            # Si el agente devuelve un plan completo, necesitamos extraer solo los targets
-            # Por ahora, calcularemos targets básicos basados en los datos del usuario
-            targets = calculate_basic_targets(user_data)
-        else:
-            # Si el resultado contiene targets directamente
-            targets = NutritionTargetSchema(
-                calories=getattr(result, 'calories', 2000),
-                protein=getattr(result, 'protein', 150),
-                carbs=getattr(result, 'carbs', 200),
-                grasas=getattr(result, 'grasas', 70)
-            )
+        # Extraer los objetivos nutricionales calculados o usar valores por defecto
+        targets = NutritionTargetSchema(
+            calories=getattr(result, 'calories', 2000),
+            protein=getattr(result, 'protein', 150),
+            carbs=getattr(result, 'carbs', 200),
+            grasas=getattr(result, 'grasas', 70)
+        )
         
         logger.info(f"Objetivos nutricionales calculados: {targets}")
         
@@ -263,7 +256,7 @@ def save_to_database(state: UserProfileState) -> Dict[str, Any]:
         user_profile = state["user_profile"]
         
         # Convertir el perfil completo a JSON para preservar toda la estructura del schema
-        user_profile_json = user_profile.model_dump()
+        user_profile_json = user_profile.model_dump() if user_profile else {}
         
         logger.info(f"Datos del perfil preparados - {user_profile.profile_name}")
         logger.info(f"�� DEBUG: user_id del estado: {state['user_id']}")

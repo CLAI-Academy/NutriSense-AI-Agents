@@ -1,5 +1,5 @@
 from typing import TypedDict, List, Optional, Dict, Any
-from nutrisense_agents.ai_companion.schemas.user_profile_schema import NutritionTargetSchema, UserNutritionProfileSchema
+from nutrisense_agents.ai_companion.schemas.user_profile_schema import NutritionTargetSchema, UserProfileSheet
 
 
 class UserProfileState(TypedDict):
@@ -57,7 +57,7 @@ class UserProfileState(TypedDict):
     nutrition_targets: Optional[NutritionTargetSchema]
     
     # Perfil nutricional generado
-    user_profile: Optional[UserNutritionProfileSchema]
+    user_profile: Optional[UserProfileSheet]
     
     # Resumen conversacional generado
     summary: Optional[str]

@@ -1,4 +1,4 @@
-from nutrisense_agents.ai_companion.graphs.nutrition_plan_graph.graph import compiled_nutrition_plan_graph
+from nutrisense_agents.ai_companion.graphs.nutrition_plan_graph.graph import compiled_user_profile_graph
 from nutrisense_agents.ai_companion.schemas.nutrition_plan_schema import NutritionPlanInputSchema
 
 def generate_nutrition_plan_service(user_data: dict, user_id: str):
@@ -43,7 +43,7 @@ def generate_nutrition_plan_service(user_data: dict, user_id: str):
         }
         
         # Ejecutar el grafo completo
-        result = compiled_nutrition_plan_graph.invoke(initial_state)
+        result = compiled_user_profile_graph.invoke(initial_state)
         
         # Verificar si el proceso fue exitoso
         if not result.get("success"):

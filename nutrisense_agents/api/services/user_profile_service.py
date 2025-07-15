@@ -5,42 +5,46 @@ def generate_user_profile_service(user_data: dict, user_id: str):
     """Recibe un diccionario con los datos del usuario y su user_id.
     Genera un perfil nutricional usando el grafo de LangGraph y lo guarda en Supabase."""
     try:
-        # Preparar el estado inicial con los datos del usuario
-        initial_state = {
-            "user_id": user_id,
-            "age": user_data.get("age"),
-            "gender": user_data.get("gender"),
-            "weight": user_data.get("weight"),
-            "height": user_data.get("height"),
-            "activity_level": user_data.get("activity_level"),
-            "goal": user_data.get("goal"),
-            "preferences": user_data.get("preferences", []),
-            "allergies": user_data.get("allergies", []),
-            "medical_conditions": user_data.get("medical_conditions", []),
-            "breakfast": user_data.get("breakfast"),
-            "lunch": user_data.get("lunch"),
-            "snack": user_data.get("snack"),
-            "dinner": user_data.get("dinner"),
-            "work_mode": user_data.get("work_mode"),
-            "shift_type": user_data.get("shift_type"),
-            "lunch_place": user_data.get("lunch_place"),
-            "who_cooks": user_data.get("who_cooks"),
-            "who_shops": user_data.get("who_shops"),
-            "cook_for_others": user_data.get("cook_for_others"),
-            "weekend_diff": user_data.get("weekend_diff"),
-            "cooking_frequency": user_data.get("cooking_frequency"),
-            "cooking_time": user_data.get("cooking_time"),
-            "cooking_likes": user_data.get("cooking_likes"),
-            "ultraprocessed_frequency": user_data.get("ultraprocessed_frequency"),
-            "weight_history": user_data.get("weight_history"),
-            "weight_changes": user_data.get("weight_changes"),
-            "weight_events": user_data.get("weight_events"),
-            "current_difficulties": user_data.get("current_difficulties"),
-            "emotional_eating": user_data.get("emotional_eating"),
-            "snacking": user_data.get("snacking"),
-            "alcohol_intake": user_data.get("alcohol_intake"),
-            "weight_target": user_data.get("weight_target")
-        }
+        # Validar los datos de entrada usando el schema
+        input_data = UserProfileInputSchema(
+            user_id=user_id,
+            age=user_data["age"],
+            gender=user_data["gender"],
+            weight=user_data["weight"],
+            height=user_data["height"],
+            activity_level=user_data["activity_level"],
+            goal=user_data["goal"],
+            preferences=user_data.get("preferences", []),
+            allergies=user_data.get("allergies", []),
+            medical_conditions=user_data.get("medical_conditions", []),
+            breakfast=user_data.get("breakfast", ""),
+            lunch=user_data.get("lunch", ""),
+            snack=user_data.get("snack", ""),
+            dinner=user_data.get("dinner", ""),
+            work_mode=user_data["work_mode"],
+            shift_type=user_data["shift_type"],
+            lunch_place=user_data["lunch_place"],
+            who_cooks=user_data["who_cooks"],
+            who_shops=user_data["who_shops"],
+            cook_for_others=user_data["cook_for_others"],
+            weekend_diff=user_data["weekend_diff"],
+            cooking_frequency=user_data["cooking_frequency"],
+            cooking_time=user_data["cooking_time"],
+            cooking_likes=user_data["cooking_likes"],
+            ultraprocessed_frequency=user_data["ultraprocessed_frequency"],
+            weight_history=user_data.get("weight_history", ""),
+            weight_changes=user_data.get("weight_changes", ""),
+            weight_events=user_data.get("weight_events", ""),
+            current_difficulties=user_data.get("current_difficulties", ""),
+            emotional_eating=user_data["emotional_eating"],
+            snacking=user_data["snacking"],
+            alcohol_intake=user_data["alcohol_intake"],
+            weight_target=user_data.get("weight_target", ""),
+            food_preferences=user_data.get("food_preferences", [])
+        )
+
+        # Preparar el estado inicial con los datos validados
+        initial_state = input_data.dict()
         
         # Ejecutar el grafo completo
         result = compiled_user_profile_graph.invoke(initial_state)
@@ -58,7 +62,7 @@ def generate_user_profile_service(user_data: dict, user_id: str):
             "success": True,
             "message": "User profile generated and saved successfully",
             "user_profile": result.get("user_profile_json"),
-            "nutrition_targets": result.get("nutrition_targets"),
+            "nutrition_targets": result.get("nutrition_targets").dict() if result.get("nutrition_targets") else None,
             "summary": result.get("summary"),
             "db_response": result.get("db_response")
         }
