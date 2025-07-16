@@ -1,7 +1,8 @@
 {
     "dockerfile_lines": [],
     "graphs": {
-      "nutritional": "./nutrisense_agents/ai_companion/graphs/nutrition_plan_graph/graph.py:user_profile_graph"
+      "nutritional": "./nutrisense_agents/ai_companion/graphs/nutrition_plan_graph/graph.py:user_profile_graph",
+      "react": "./nutrisense_agents/ai_companion/graphs/react_agent_graph/graph.py:react_agent_graph"
     },
     "env": ".env",
     "python_version": "3.12",

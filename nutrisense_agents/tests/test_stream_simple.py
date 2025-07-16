@@ -40,8 +40,8 @@ async def test_stream_basic():
     """Test básico de streaming con output completo"""
     print("🚀 Test básico de streaming...")
     
-    user_uid = "db34fd60-d91f-4845-b8ac-b95c6fd60322"
-    messages = [{"role": "user", "content": "lo que estoy comiendo es sano?"}]
+    user_uid = "616c059d-fc52-4b88-a62b-80e2e774f896"
+    messages = [{"role": "user", "content": "lo que estoy comiendo es sano?, utiliza las herramientas que tienes a tu dispoisicion para comprobarlo"}]
     
     print(f"👤 Usuario: {user_uid}")
     print(f"💬 Mensaje: {messages[0]['content']}")
@@ -140,8 +140,8 @@ async def test_stream_with_tool_usage():
     """Test de streaming con uso de tools y output detallado"""
     print("\n🛠️ Test de streaming con posible uso de tools...")
     
-    user_uid = "db34fd60-d91f-4845-b8ac-b95c6fd60322"
-    messages = [{"role": "user", "content": "crea un plan nutricional para mi semana actual"}]
+    user_uid = "616c059d-fc52-4b88-a62b-80e2e774f896"
+    messages = [{"role": "user", "content": "prepara un plan nutricional para mi semana actual"}]
     
     print(f"👤 Usuario: {user_uid}")
     print(f"💬 Mensaje: {messages[0]['content']}")

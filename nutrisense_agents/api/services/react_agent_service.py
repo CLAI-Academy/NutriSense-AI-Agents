@@ -29,7 +29,7 @@ async def create_react_agent_service(user_uid: str) -> Any:
     return await create_nutrisense_react_agent(
         user_uid=user_uid,
         user_sheet=user_data.get("summary", "No hay ficha disponible"),
-        user_plan=user_data.get("nutritional_plan", "No hay plan nutricional disponible")
+        user_plan=user_data.get("user_nutrition_profile", "No hay plan nutricional disponible")
     )
 
 # ---------------------------------------------------------------------------
