@@ -1,0 +1,197 @@
+{
+  "profile_name": "Plan Nutricional Personalizado - Pérdida de Peso Saludable",
+  "user_summary": "Hola María, hemos creado tu perfil nutricional personalizado enfocado en la pérdida de peso saludable. Considerando tu trabajo desde casa y tu preferencia por comidas vegetarianas, este perfil incluye directrices flexibles que te ayudarán a alcanzar tus objetivos de forma sostenible.",
+  "nutrition_targets": {
+    "calories": 2000,
+    "protein": 150,
+    "carbs": 200,
+    "grasas": 65
+  },
+  "breakfast_guidelines": {
+    "recommended_proteins": [
+      "huevos",
+      "yogur griego",
+      "proteína vegetal",
+      "queso fresco"
+    ],
+    "recommended_carbs": [
+      "avena",
+      "pan integral",
+      "cereales integrales",
+      "frutas"
+    ],
+    "recommended_vegetables": [
+      "espinacas",
+      "tomate",
+      "pimientos"
+    ],
+    "recommended_fruits": [
+      "plátano",
+      "bayas",
+      "manzana"
+    ],
+    "recommended_fats": [
+      "aguacate",
+      "frutos secos",
+      "aceite de oliva"
+    ],
+    "portion_guidelines": "1 porción de proteína (tamaño de palma), 1-2 porciones de carbohidratos, vegetales a voluntad",
+    "meal_timing": "Consumir dentro de 1-2 horas después de despertar",
+    "preparation_tips": [
+      "Preparar la noche anterior",
+      "Usar métodos de cocción rápidos",
+      "Combinar proteína con carbohidratos complejos"
+    ]
+  },
+  "lunch_guidelines": {
+    "recommended_proteins": [
+      "pollo",
+      "pescado",
+      "legumbres",
+      "tofu"
+    ],
+    "recommended_carbs": [
+      "arroz integral",
+      "quinoa",
+      "pasta integral",
+      "patatas"
+    ],
+    "recommended_vegetables": [
+      "brócoli",
+      "ensalada verde",
+      "calabacín",
+      "zanahoria"
+    ],
+    "recommended_fruits": [
+      "opcional como postre"
+    ],
+    "recommended_fats": [
+      "aceite de oliva",
+      "aguacate",
+      "frutos secos"
+    ],
+    "portion_guidelines": "1 porción de proteína, 1 porción de carbohidratos, 2 porciones de vegetales",
+    "meal_timing": "Entre 12:00 y 14:00 horas",
+    "preparation_tips": [
+      "Batch cooking domingos",
+      "Usar verduras congeladas",
+      "Cocinar proteína en cantidad"
+    ]
+  },
+  "snack_guidelines": {
+    "recommended_proteins": [
+      "yogur",
+      "frutos secos",
+      "huevo duro"
+    ],
+    "recommended_carbs": [
+      "fruta",
+      "galletas integrales",
+      "crackers"
+    ],
+    "recommended_vegetables": [
+      "bastones de zanahoria",
+      "pepino",
+      "tomates cherry"
+    ],
+    "recommended_fruits": [
+      "manzana",
+      "pera",
+      "bayas"
+    ],
+    "recommended_fats": [
+      "frutos secos",
+      "semillas"
+    ],
+    "portion_guidelines": "Porciones pequeñas, combinar proteína con carbohidratos",
+    "meal_timing": "Entre comidas principales si hay hambre",
+    "preparation_tips": [
+      "Preparar porciones individuales",
+      "Tener opciones listas",
+      "Evitar ultraprocesados"
+    ]
+  },
+  "dinner_guidelines": {
+    "recommended_proteins": [
+      "pescado",
+      "pollo",
+      "proteína vegetal",
+      "huevos"
+    ],
+    "recommended_carbs": [
+      "vegetales",
+      "ensalada",
+      "carbohidratos ligeros"
+    ],
+    "recommended_vegetables": [
+      "verduras al vapor",
+      "ensalada",
+      "vegetales asados"
+    ],
+    "recommended_fruits": [
+      "opcional, preferir antes del postre"
+    ],
+    "recommended_fats": [
+      "aceite de oliva",
+      "aguacate",
+      "frutos secos"
+    ],
+    "portion_guidelines": "1 porción de proteína, abundantes vegetales, carbohidratos ligeros",
+    "meal_timing": "2-3 horas antes de dormir",
+    "preparation_tips": [
+      "Cenas ligeras",
+      "Priorizar vegetales",
+      "Evitar alimentos pesados"
+    ]
+  },
+  "optional_snacks": [
+    "Yogur griego con bayas",
+    "Frutos secos (porción pequeña)",
+    "Hummus con bastones de vegetales",
+    "Huevo duro con tomates cherry",
+    "Smoothie de proteína con vegetales verdes"
+  ],
+  "lifestyle_factors": {
+    "work_schedule": "Horario de oficina (9-17h), posibilidad de comer en casa al mediodía",
+    "cooking_availability": "Tiempo moderado para cocinar, prefiere preparaciones sencillas",
+    "meal_organization": "Compras semanales, planificación básica de menús",
+    "social_eating": "Come en familia, ocasionalmente fuera de casa los fines de semana",
+    "weekend_patterns": "Más tiempo para cocinar, comidas más elaboradas"
+  },
+  "dietary_considerations": {
+    "allergies_impact": "Evitar frutos secos en todas las preparaciones, leer etiquetas cuidadosamente",
+    "preferences_integration": "Incorporar opciones vegetarianas 3-4 veces por semana",
+    "medical_adaptations": "Control de porciones de carbohidratos, preferir complejos sobre simples",
+    "emotional_eating_strategies": "Identificar triggers emocionales, tener alternativas saludables preparadas"
+  },
+  "general_recommendations": {
+    "meal_prep_suggestions": [
+      "Preparar proteínas en lotes los domingos",
+      "Cortar vegetales y guardar en recipientes",
+      "Cocinar granos en cantidad y congelar porciones",
+      "Preparar snacks saludables para la semana"
+    ],
+    "shopping_tips": [
+      "Hacer lista de compras basada en el plan semanal",
+      "Comprar proteínas en ofertas y congelar",
+      "Priorizar vegetales de temporada",
+      "Tener básicos siempre en casa"
+    ],
+    "time_management": [
+      "Usar olla express para cocinar más rápido",
+      "Aprovechar mientras se cocina una cosa para preparar otra",
+      "Tener recetas de 15-20 minutos para días ocupados"
+    ],
+    "habit_building": [
+      "Empezar con cambios pequeños y sostenibles",
+      "Establecer rutinas de compra y preparación",
+      "Celebrar pequeños logros semanales"
+    ],
+    "progress_tracking": [
+      "Llevar registro de energía y bienestar",
+      "Tomar fotos de los platos para ver evolución",
+      "Evaluar semanalmente qué funcionó y qué no"
+    ]
+  },
+  "special_notes": "Recuerda que este es un perfil flexible que debe adaptarse a tus necesidades diarias. Lo importante es crear hábitos sostenibles."
+}
