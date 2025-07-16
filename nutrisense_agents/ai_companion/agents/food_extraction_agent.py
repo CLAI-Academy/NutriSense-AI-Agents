@@ -36,7 +36,7 @@ def get_compatibility_agent_chain():
 
     prompt = ChatPromptTemplate.from_messages([
         ("system", COMPATIBILITY_ANALYSIS_PROMPT),
-        ("human", "Analiza la compatibilidad de esta comida con los objetivos del usuario.")
+        ("human", "Analiza la compatibilidad de esta comida con los objetivos del usuario. El nombre del usuario es {user_name}")
     ])
 
     chain = prompt | model
