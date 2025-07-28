@@ -1,0 +1,115 @@
+# tools_wrappers.py
+from typing import List, Optional, Dict
+from langchain_core.tools import tool
+from langchain_core.runnables import RunnableConfig
+from nutrisense_agents.ai_companion.schemas.tools_schemas.react_input_schemas import (
+    RecipeList, MealPlanInput, PlannedMealInput, OptimizeMealPlanInput, 
+    MealPlanSummaryInput, UserDataInput
+)
+from nutrisense_agents.db.supabase.supabasetool import SupabaseTools   # tu clase original
+
+st = SupabaseTools()   # instancia compartida (o crea una nueva dentro)
+
+
+@tool
+def add_planned_meal_tool(data: RecipeList, *, config: RunnableConfig):
+    """
+    Añade una lista de comidas planificadas para el usuario.
+    Tras crear la lista de comidas, se debe mostrar al usuario, qué días debe cocinar, 
+    que recetas debe preparar y como guardarlas para que sea lo más óptimo posible.
+    """
+    user_uuid = config.get("configurable", {}).get("user_uuid")   # ← inyección segura
+    if not user_uuid:
+        raise KeyError("user_uuid")
+    return st.add_planned_meal(data, user_uuid)
+
+@tool
+def create_meal_plan_tool(data: MealPlanInput, *, config: RunnableConfig):
+    """
+    Crea un plan de comidas semanal base para el usuario.
+    Genera un plan personalizado considerando fecha de inicio, objetivos calóricos, 
+    preferencias dietéticas y número de comidas por día.
+    """
+    user_uuid = config.get("configurable", {}).get("user_uuid")
+    if not user_uuid:
+        raise KeyError("user_uuid")
+    return st.create_meal_plan(data, user_uuid)
+
+@tool
+def add_planned_meal_to_schedule_tool(data: PlannedMealInput, *, config: RunnableConfig):
+    """
+    Crea recetas y las programa automáticamente en un plan de comidas existente.
+    Combina la creación de recetas con la programación automática en la semana, 
+    distribuyendo las comidas de forma equilibrada.
+    """
+    user_uuid = config.get("configurable", {}).get("user_uuid")
+    if not user_uuid:
+        raise KeyError("user_uuid")
+    return st.add_planned_meal_to_schedule(data, user_uuid)
+
+@tool
+def optimize_meal_plan_tool(data: OptimizeMealPlanInput, *, config: RunnableConfig):
+    """
+    Analiza y optimiza un plan de comidas existente.
+    Proporciona análisis nutricional completo, recomendaciones de mejora, 
+    lista de ingredientes necesarios y sugerencias de meal prep.
+    """
+    user_uuid = config.get("configurable", {}).get("user_uuid")
+    if not user_uuid:
+        raise KeyError("user_uuid")
+    return st.optimize_meal_plan(data.meal_plan_id, user_uuid)
+
+@tool
+def get_meal_plan_summary_tool(data: MealPlanSummaryInput, *, config: RunnableConfig):
+    """
+    Obtiene un resumen completo del plan de comidas con información práctica.
+    Incluye horarios de comidas, días optimizados para cocinar, recetas a preparar 
+    y tiempo total de cocina estimado.
+    """
+    user_uuid = config.get("configurable", {}).get("user_uuid")
+    if not user_uuid:
+        raise KeyError("user_uuid")
+    return st.get_meal_plan_summary(data.meal_plan_id, user_uuid)
+
+@tool
+def get_user_data_tool(data: UserDataInput, *, config: RunnableConfig):
+    """
+    Obtiene datos del usuario de tablas específicas con filtros opcionales.
+    
+    INFORMACIÓN DISPONIBLE POR TABLA:
+    
+    PLANIFICACIÓN:
+    • meal_plans: Planes de comida semanales (week_start_date, is_active)
+    • planned_meals: Comidas planificadas específicas (day_of_week, meal_type, recipe_id, 
+      start_time, servings_planned)
+    
+    REGISTRO Y SEGUIMIENTO:
+    • food_diary: Diario nutricional diario con alimentos consumidos, cantidades, información 
+      nutricional, hora de consumo, ubicación, contexto, estado de ánimo ocasional
+    • daily_nutrition_summary: Resúmenes nutricionales diarios agregados con totales vs objetivos 
+      y puntuación de adherencia
+    
+    INVENTARIO Y COMPRAS:
+    • user_inventory: Inventario personal de ingredientes (quantity, unit, expiry_date, location)
+    • shopping_lists: Listas de compra (name, status, meal_plan_id, total_estimated_cost)
+    • shopping_list_items: Items específicos de listas de compra con cantidades necesarias, 
+      disponibles y a comprar
+    
+    GAMIFICACIÓN:
+    • user_streak: Rachas de cumplimiento de objetivos (current_streak, best_streak, 
+      last_target_date)
+    """
+    user_uuid = config.get("configurable", {}).get("user_uuid")
+    if not user_uuid:
+        raise KeyError("user_uuid")
+    return st.get_user_data(data.table_name, user_uuid, data.extra_filters, data.limit)
+
+
+TOOLS = [
+    add_planned_meal_tool,
+    create_meal_plan_tool,
+    add_planned_meal_to_schedule_tool,
+    optimize_meal_plan_tool,
+    get_meal_plan_summary_tool,
+    get_user_data_tool
+]

@@ -48,7 +48,7 @@ async def invoke_nutrisense_react_agent(
         messages: Lista de mensajes en formato [{role: str, content: str}]
     """
     agent = await create_react_agent_service(user_uid)
-    return await agent.ainvoke({"messages": messages})
+    return await agent.ainvoke({"messages": messages}, config={"configurable": {"user_uuid": user_uid}})
 
 async def stream_nutrisense_react_agent(
     user_uid: str, 
@@ -62,5 +62,5 @@ async def stream_nutrisense_react_agent(
         messages: Lista de mensajes en formato [{role: str, content: str}]
     """
     agent = await create_react_agent_service(user_uid)
-    async for chunk in agent.astream({"messages": messages}):
+    async for chunk in agent.astream({"messages": messages}, config={"configurable": {"user_uuid": user_uid}}):
         yield chunk

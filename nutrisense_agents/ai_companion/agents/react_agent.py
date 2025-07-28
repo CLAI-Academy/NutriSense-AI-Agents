@@ -8,13 +8,13 @@ Este módulo se limita a:
 """
 
 from typing import Dict, Any
-
+from datetime import datetime
 from langgraph.prebuilt import create_react_agent
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
 from nutrisense_agents.config.agent_config import get_chat_model
-from nutrisense_agents.ai_companion.MCPs.mcp_tools import get_mcp_tools
 from nutrisense_agents.ai_companion.prompts.react_prompt import REACT_PROMPT
+from nutrisense_agents.ai_companion.tools.react_tools import TOOLS
 
 async def create_nutrisense_react_agent(user_uid: str, user_sheet: str, user_plan: str):
     """
@@ -25,8 +25,8 @@ async def create_nutrisense_react_agent(user_uid: str, user_sheet: str, user_pla
         user_sheet: Ficha del usuario
         user_plan: Plan nutricional del usuario
     """
-    model = get_chat_model("claude")
-    tools = await get_mcp_tools(user_uid=user_uid)
+    model = get_chat_model("gpt")
+    tools = TOOLS
 
     # Escapar llaves para evitar conflictos con ChatPromptTemplate
     user_sheet_escaped = str(user_sheet).replace('{', '{{').replace('}', '}}')
@@ -34,7 +34,7 @@ async def create_nutrisense_react_agent(user_uid: str, user_sheet: str, user_pla
 
     # Construimos el prompt con el contexto del usuario y placeholder para mensajes
     template = ChatPromptTemplate.from_messages([
-        ("system", f"{REACT_PROMPT}\n\nContexto del usuario:\nFicha: {user_sheet_escaped}\nPlan Nutricional: {user_plan_escaped}"),
+        ("system", f"{REACT_PROMPT}\n\nContexto del usuario:\nFicha: {user_sheet_escaped}\nPlan Nutricional: {user_plan_escaped}, fecha actual {datetime.now().strftime('%d/%m/%Y')}, y dia de la semana {datetime.now().strftime('%A')}"),
         MessagesPlaceholder(variable_name="messages")
     ])
     
