@@ -2,8 +2,13 @@ from openai import OpenAI
 from pydantic import BaseModel
 from typing import List, Optional, Union
 import json
+from nutrisense_agents.config.settings import settings
 
-client = OpenAI()
+def get_openai_client():
+    """Get OpenAI client with proper configuration"""
+    if not settings.OPENAI_API_KEY:
+        raise ValueError("OPENAI_API_KEY environment variable is required")
+    return OpenAI(api_key=settings.OPENAI_API_KEY)
 
 # Modelos para el input
 class Ingredient(BaseModel):
@@ -78,6 +83,7 @@ Responde SOLO con el JSON en el formato especificado, sin texto adicional."""
 
     try:
         # Hacer la llamada al LLM
+        client = get_openai_client()
         response = client.beta.chat.completions.parse(
             model="gpt-4o-2024-08-06",
             messages=[

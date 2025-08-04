@@ -141,7 +141,7 @@ async def test_stream_with_tool_usage():
     print("\n🛠️ Test de streaming con posible uso de tools...")
     
     user_uid = "616c059d-fc52-4b88-a62b-80e2e774f896"
-    messages = [{"role": "user", "content": "prepara un plan nutricional para mi semana actual"}]
+    messages = [{"role": "user", "content": "quiero un plan de solo almuerzoas para esta semana"}]
     
     print(f"👤 Usuario: {user_uid}")
     print(f"💬 Mensaje: {messages[0]['content']}")

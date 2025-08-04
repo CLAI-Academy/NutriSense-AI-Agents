@@ -335,13 +335,7 @@ class SupabaseTools:
         """
         try:
             # 1. Obtener todas las comidas planificadas
-            planned_meals = self.sb.table("planned_meals").select("""
-                *,
-                recipe:recipes!inner(
-                    id, title, meal_type, total_calories, total_protein, 
-                    total_carbs, total_fat, servings
-                )
-            """).eq("meal_plan_id", meal_plan_id).execute()
+            planned_meals = self.sb.table("planned_meals").select("*").eq("meal_plan_id", meal_plan_id).execute()
             
             if not planned_meals.data:
                 log.warning(f"No se encontraron comidas planificadas para el plan {meal_plan_id}")
@@ -353,8 +347,15 @@ class SupabaseTools:
             
             for meal in planned_meals.data:
                 day = meal["day_of_week"]
-                recipe = meal["recipe"]
+                recipe_id = meal["recipe_id"]
                 servings = meal["servings_planned"]
+                
+                # Obtener datos de la receta por separado
+                recipe_data = self.sb.table("recipes").select("*").eq("id", recipe_id).execute()
+                if not recipe_data.data:
+                    log.warning(f"Receta {recipe_id} no encontrada")
+                    continue
+                recipe = recipe_data.data[0]
                 
                 # Inicializar día si no existe
                 if day not in daily_nutrition:
@@ -486,15 +487,9 @@ class SupabaseTools:
             
             plan_info = meal_plan.data[0]
             
-            # 2. Obtener comidas planificadas con recetas
+            # 2. Obtener comidas planificadas 
             try:
-                planned_meals = self.sb.table("planned_meals").select("""
-                    *,
-                    recipe:recipes!inner(
-                        id, title, meal_type, prep_time, cook_time, servings,
-                        total_calories, instructions
-                    )
-                """).eq("meal_plan_id", meal_plan_id).execute()
+                planned_meals = self.sb.table("planned_meals").select("*").eq("meal_plan_id", meal_plan_id).execute()
             except Exception as e:
                 log.error(f"Error getting meal plan summary: {str(e)}")
                 return {
@@ -521,11 +516,19 @@ class SupabaseTools:
                     weekly_schedule[day_name] = []
                 
                 try:
-                    recipe = meal["recipe"]
+                    recipe_id = meal["recipe_id"]
+                    # Obtener datos de la receta por separado
+                    recipe_data = self.sb.table("recipes").select("*").eq("id", recipe_id).execute()
+                    if not recipe_data.data:
+                        log.warning(f"Receta {recipe_id} no encontrada")
+                        continue
+                    recipe = recipe_data.data[0]
+                    
                     start_time_hours = meal["start_time"] // 60
                     start_time_minutes = meal["start_time"] % 60
                 except Exception as e:
                     log.error(f"Error al acceder a la receta: {str(e)}")
+                    log.error(f"Estructura de meal: {list(meal.keys())}")
                     continue
                 
                 weekly_schedule[day_name].append({
@@ -545,10 +548,16 @@ class SupabaseTools:
             
             for meal in planned_meals.data:
                 try:
-                    recipe = meal["recipe"]
-                    recipe_id = recipe["id"]
+                    recipe_id = meal["recipe_id"]
+                    # Obtener datos de la receta por separado
+                    recipe_data = self.sb.table("recipes").select("*").eq("id", recipe_id).execute()
+                    if not recipe_data.data:
+                        log.warning(f"Receta {recipe_id} no encontrada")
+                        continue
+                    recipe = recipe_data.data[0]
                 except Exception as e:
                     log.error(f"Error al acceder a la receta en meal_prep: {str(e)}")
+                    log.error(f"Estructura de meal: {list(meal.keys())}")
                     continue
                 
                 if recipe_id not in unique_recipes:
@@ -592,7 +601,7 @@ class SupabaseTools:
                 "summary": {
                     "total_meals": len(planned_meals.data),
                     "unique_recipes": len(unique_recipes),
-                    "avg_calories_per_meal": sum(meal["recipes"].get("total_calories", 0) or 0 for meal in planned_meals.data) / len(planned_meals.data)
+                    "avg_calories_per_meal": sum(recipe_info.get("calories", 0) for recipe_info in weekly_schedule.values() for recipe_info in recipe_info if recipe_info.get("calories")) / len(planned_meals.data) if planned_meals.data else 0
                 }
             }
             

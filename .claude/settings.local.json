@@ -4,5 +4,9 @@
       "Bash(mkdir:*)"
     ],
     "deny": []
-  }
+  },
+  "enabledMcpjsonServers": [
+    "shared-server"
+  ],
+  "enableAllProjectMcpServers": true
 }
