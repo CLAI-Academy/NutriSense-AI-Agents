@@ -672,3 +672,245 @@ class SupabaseTools:
         resp = query.execute()
         return resp.data or []
     
+    def get_user_inventory(self, user_uuid: str) -> list:
+        """ Devuelve el inventario actual del usuario, incluyendo:
+        Nombre del ingrediente (buscado manualmente)
+        - Cantidad
+        - Unidad
+        - Fecha de vencimiento
+        """
+        try:
+            # 1. Obtener el inventario del usuario
+            inventory_response = (
+                self.sb.table("user_inventory")
+                .select("ingredient_id, quantity, unit, expiry_date")
+                .eq("user_id", user_uuid.strip())
+                .execute()
+            )
+
+            inventory_data = inventory_response.data or []
+            if not inventory_data:
+                return []
+
+            # 2. Extraer IDs únicos de ingredientes
+            ingredient_ids = list({
+                item["ingredient_id"]
+                for item in inventory_data
+                if item.get("ingredient_id")
+            })
+
+            if not ingredient_ids:
+                return []
+
+            # 3. Buscar nombres de ingredientes
+            ingredients_response = (
+                self.sb.table("ingredients")
+                .select("id, name")
+                .in_("id", ingredient_ids)
+                .execute()
+            )
+
+            ingredients_data = ingredients_response.data or []
+            name_map = {item["id"]: item["name"] for item in ingredients_data}
+
+            # 4. Formatear el resultado final
+            result = []
+            for item in inventory_data:
+                ingredient_name = name_map.get(item["ingredient_id"], f"ID {item['ingredient_id']}")
+                result.append({
+                    "ingredient_name": ingredient_name,
+                    "quantity": item["quantity"],
+                    "unit": item["unit"],
+                    "expiry_date": item["expiry_date"]
+                })
+
+            return result
+
+        except Exception as e:
+            log.error(f"Error en get_user_inventory: {e}")
+            return []
+
+    def get_ingredients_expiring_today(self, user_uuid: str) -> list:
+        """
+        Devuelve los ingredientes del inventario que vencen exactamente HOY.
+        Excluye ingredientes ya vencidos o que vencen más adelante.
+        """
+        try:
+            inventory = self.get_user_inventory(user_uuid)
+
+            today = datetime.today().date()
+
+            result = []
+            for item in inventory:
+                expiry_raw = item.get("expiry_date")
+                if not expiry_raw:
+                    continue
+
+                try:
+                    expiry_date = datetime.strptime(expiry_raw[:10], "%Y-%m-%d").date()
+                except ValueError:
+                    continue
+
+                if expiry_date == today:
+                    result.append(item)
+
+            return result
+
+        except Exception as e:
+            log.error(f"Error en get_ingredients_expiring_today: {e}")
+            return []
+
+    def get_suggested_recipes_by_inventory(self, user_uuid: str) -> list:
+        """
+        Devuelve una lista de recetas recomendadas según los ingredientes del inventario del usuario.
+        Para cada receta, calcula cuántos ingredientes tiene disponibles y cuáles le faltan.
+        """
+        try:
+            # 1. Obtener inventario del usuario
+            inventory = (
+                self.sb.table("user_inventory")
+                .select("ingredient_id, quantity, unit")
+                .eq("user_id", user_uuid)
+                .execute()
+            ).data or []
+
+            if not inventory:
+                return []
+
+            inventory_map = {
+                item["ingredient_id"]: {
+                    "quantity": float(item["quantity"]),
+                    "unit": item["unit"]
+                }
+                for item in inventory
+                if item.get("ingredient_id")
+            }
+
+            # 2. Obtener todas las recetas y sus ingredientes
+            recipe_ingredients = (
+                self.sb.table("recipe_ingredients")
+                .select("recipe_id, ingredient_id, quantity, unit, recipes(title), ingredients(name)")
+                .execute()
+            ).data or []
+
+            # 3. Agrupar ingredientes por receta
+            recipes_map = {}
+            for ri in recipe_ingredients:
+                recipe_id = ri["recipe_id"]
+                recipe_title = ri["recipes"]["title"]
+                ingredient_id = ri["ingredient_id"]
+                ingredient_name = ri["ingredients"]["name"]
+                required_quantity = float(ri["quantity"])
+                required_unit = ri["unit"]
+
+                if recipe_id not in recipes_map:
+                    recipes_map[recipe_id] = {
+                        "title": recipe_title,
+                        "ingredients": []
+                    }
+
+                recipes_map[recipe_id]["ingredients"].append({
+                    "ingredient_id": ingredient_id,
+                    "ingredient_name": ingredient_name,
+                    "required_quantity": required_quantity,
+                    "required_unit": required_unit
+                })
+
+            # 4. Comparar recetas con inventario
+            suggested = []
+            for recipe_id, recipe in recipes_map.items():
+                total_ingredients = len(recipe["ingredients"])
+                available_count = 0
+                missing = []
+
+                for ing in recipe["ingredients"]:
+                    user_ing = inventory_map.get(ing["ingredient_id"])
+                    if user_ing:
+                        # TODO: Comparación de unidades real si es necesario
+                        if user_ing["quantity"] >= ing["required_quantity"]:
+                            available_count += 1
+                        else:
+                            missing.append(ing["ingredient_name"])
+                    else:
+                        missing.append(ing["ingredient_name"])
+
+                match_percent = int((available_count / total_ingredients) * 100)
+
+                suggested.append({
+                    "title": recipe["title"],
+                    "match_percent": match_percent,
+                    "missing_ingredients": missing
+                })
+
+            # 5. Ordenar por mejor match
+            suggested.sort(key=lambda x: x["match_percent"], reverse=True)
+
+            return suggested
+
+        except Exception as e:
+            log.error(f" Error en get_suggested_recipes_by_inventory: {e}")
+            return []
+    
+    def generate_shopping_list(self, user_uuid: str, recipe_ids: list) -> list:
+        """
+        Genera una lista de compras basada en recetas seleccionadas y el inventario del usuario.
+        Devuelve los ingredientes faltantes y las cantidades necesarias.
+        """
+        try:
+            # 1. Obtener inventario actual del usuario
+            inventory = (
+                self.sb.table("user_inventory")
+                .select("ingredient_id, quantity")
+                .eq("user_id", user_uuid)
+                .execute()
+            ).data or []
+
+            inventory_map = {
+                item["ingredient_id"]: float(item["quantity"]) for item in inventory
+            }
+
+            # 2. Obtener ingredientes requeridos para las recetas seleccionadas
+            recipe_ingredients = (
+                self.sb.table("recipe_ingredients")
+                .select("ingredient_id, quantity, unit, ingredients(name)")
+                .in_("recipe_id", recipe_ids)
+                .execute()
+            ).data or []
+
+            # 3. Calcular cantidades necesarias totales por ingrediente
+            shopping_needs = {}
+
+            for ri in recipe_ingredients:
+                ing_id = ri["ingredient_id"]
+                name = ri["ingredients"]["name"]
+                required_qty = float(ri["quantity"])
+                unit = ri["unit"]
+
+                if ing_id not in shopping_needs:
+                    shopping_needs[ing_id] = {
+                        "ingredient_name": name,
+                        "required_quantity": 0.0,
+                        "unit": unit
+                    }
+
+                shopping_needs[ing_id]["required_quantity"] += required_qty
+
+            # 4. Comparar con inventario para calcular faltantes
+            shopping_list = []
+
+            for ing_id, data in shopping_needs.items():
+                available_qty = inventory_map.get(ing_id, 0)
+                to_buy = data["required_quantity"] - available_qty
+
+                if to_buy > 0:
+                    shopping_list.append({
+                        "ingredient": data["ingredient_name"],
+                        "quantity_to_buy": round(to_buy, 2),
+                        "unit": data["unit"]
+                    })
+
+            return shopping_list
+
+        except Exception as e:
+            log.error(f" Error en generate_shopping_list: {e}")
+            return []
