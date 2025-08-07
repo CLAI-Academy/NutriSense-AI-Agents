@@ -1,5 +1,8 @@
 import asyncio
 from nutrisense_agents.api.services.react_agent_service import stream_nutrisense_react_agent
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def print_separator(title="", char="-"):
     """Imprime un separador con título opcional"""
