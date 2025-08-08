@@ -4,8 +4,9 @@ from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import logging
 
-# Importar el router de análisis de imágenes
-from nutrisense_agents.api.routes.img_analysis_route import router as img_analysis_router
+# Importar routers
+from nutrisense_agents.api.routes.food_analysis_route import router as food_analysis_router
+from nutrisense_agents.api.routes.react_agent_route import router as react_agent_router
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
@@ -44,8 +45,9 @@ async def health_check():
         "service": "NutriSense AI API"
     }
 
-# Incluir el router de análisis de imágenes
-app.include_router(img_analysis_router)
+# Incluir routers
+app.include_router(food_analysis_router)
+app.include_router(react_agent_router)
 
 if __name__ == "__main__":
     # Configuración del servidor

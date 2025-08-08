@@ -1,5 +1,8 @@
 import asyncio
 from nutrisense_agents.api.services.react_agent_service import stream_nutrisense_react_agent
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def print_separator(title="", char="-"):
     """Imprime un separador con título opcional"""
@@ -40,8 +43,8 @@ async def test_stream_basic():
     """Test básico de streaming con output completo"""
     print("🚀 Test básico de streaming...")
     
-    user_uid = "db34fd60-d91f-4845-b8ac-b95c6fd60322"
-    messages = [{"role": "user", "content": "lo que estoy comiendo es sano?"}]
+    user_uid = "616c059d-fc52-4b88-a62b-80e2e774f896"
+    messages = [{"role": "user", "content": "lo que estoy comiendo es sano?, utiliza las herramientas que tienes a tu dispoisicion para comprobarlo"}]
     
     print(f"👤 Usuario: {user_uid}")
     print(f"💬 Mensaje: {messages[0]['content']}")
@@ -140,8 +143,8 @@ async def test_stream_with_tool_usage():
     """Test de streaming con uso de tools y output detallado"""
     print("\n🛠️ Test de streaming con posible uso de tools...")
     
-    user_uid = "db34fd60-d91f-4845-b8ac-b95c6fd60322"
-    messages = [{"role": "user", "content": "lo que estoy comiendo es sano?, utiliza tus herramientas para responder"}]
+    user_uid = "616c059d-fc52-4b88-a62b-80e2e774f896"
+    messages = [{"role": "user", "content": "quiero un plan de solo almuerzoas para esta semana"}]
     
     print(f"👤 Usuario: {user_uid}")
     print(f"💬 Mensaje: {messages[0]['content']}")
