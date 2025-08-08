@@ -1,12 +1,17 @@
 # tools_wrappers.py
 from typing import List, Optional, Dict
+import logging
+import sys
 from langchain_core.tools import tool
 from langchain_core.runnables import RunnableConfig
 from nutrisense_agents.ai_companion.schemas.tools_schemas.react_input_schemas import (
     RecipeList, MealPlanInput, PlannedMealInput, OptimizeMealPlanInput, 
-    MealPlanSummaryInput, UserDataInput
+    MealPlanSummaryInput, UserDataInput,ShoppingListInput
 )
 from nutrisense_agents.db.supabase.supabasetool import SupabaseTools   # tu clase original
+
+logging.basicConfig(level=logging.ERROR, handlers=[logging.StreamHandler(sys.stderr)])
+log = logging.getLogger(__name__)
 
 st = SupabaseTools()   # instancia compartida (o crea una nueva dentro)
 
@@ -104,6 +109,50 @@ def get_user_data_tool(data: UserDataInput, *, config: RunnableConfig):
         raise KeyError("user_uuid")
     return st.get_user_data(data.table_name, user_uuid, data.extra_filters, data.limit)
 
+@tool
+def get_user_inventory_tool(*, config: RunnableConfig):
+    """
+    Devuelve el inventario actual del usuario desde Supabase.
+
+    Incluye nombre del ingrediente, cantidad, unidad y fecha de vencimiento.
+    """
+    user_uuid = config.get("configurable", {}).get("user_uuid")
+    if not user_uuid:
+        raise KeyError("user_uuid")
+    return st.get_user_inventory(user_uuid)
+
+@tool
+def check_expiring_ingredients_tool(*, config: RunnableConfig):
+    """
+    Devuelve los ingredientes del inventario que vencen HOY.
+    Excluye ingredientes ya vencidos o que vencen después.
+    """
+    user_uuid = config.get("configurable", {}).get("user_uuid")
+    if not user_uuid:
+        raise KeyError("user_uuid")
+    return st.get_ingredients_expiring_today(user_uuid)
+
+@tool
+def suggest_recipes_from_stock_tool(*, config: RunnableConfig):
+    """
+    Sugiere recetas que el usuario puede preparar con su inventario actual.
+    Devuelve recetas ordenadas según cuántos ingredientes ya tiene disponibles.
+    """
+    user_uuid = config.get("configurable", {}).get("user_uuid")
+    if not user_uuid:
+        raise KeyError("user_uuid")
+    return st.get_suggested_recipes_by_inventory(user_uuid)
+
+@tool
+def generate_shopping_list_tool(*, recipe_ids: list[int], config: RunnableConfig):
+    """
+    Genera una lista de compras basada en recetas seleccionadas y el inventario actual del usuario.
+    Devuelve solo los ingredientes faltantes con cantidades.
+    """
+    user_uuid = config.get("configurable", {}).get("user_uuid")
+    if not user_uuid:
+        raise KeyError("user_uuid")
+    return st.generate_shopping_list(user_uuid, recipe_ids)
 
 TOOLS = [
     add_planned_meal_tool,
@@ -111,5 +160,10 @@ TOOLS = [
     add_planned_meal_to_schedule_tool,
     optimize_meal_plan_tool,
     get_meal_plan_summary_tool,
-    get_user_data_tool
+    get_user_data_tool,
+    get_user_inventory_tool,
+    check_expiring_ingredients_tool,
+    suggest_recipes_from_stock_tool,
+    generate_shopping_list_tool
 ]
+

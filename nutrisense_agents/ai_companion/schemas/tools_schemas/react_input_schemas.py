@@ -38,3 +38,6 @@ class UserDataInput(BaseModel):
     table_name: str = Field(description="Nombre de la tabla a consultar")
     extra_filters: Optional[dict] = Field(default=None, description="Filtros adicionales a aplicar")
     limit: Optional[int] = Field(default=None, description="Límite de resultados a retornar")
+
+class ShoppingListInput(BaseModel):
+    recipe_ids: list[int]
