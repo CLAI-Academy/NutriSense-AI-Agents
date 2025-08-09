@@ -158,7 +158,6 @@ TOOLS = [
     add_planned_meal_tool,
     create_meal_plan_tool,
     add_planned_meal_to_schedule_tool,
-    optimize_meal_plan_tool,
     get_meal_plan_summary_tool,
     get_user_data_tool,
     get_user_inventory_tool,

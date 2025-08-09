@@ -27,9 +27,8 @@ Analiza esta información antes de proceder con la creación del plan.
 
 PASO 3: AÑADIR RECETAS AL PLAN
 
-PASO 4: OPTIMIZAR Y ANALIZAR
 
-PASO 5: PRESENTAR RESUMEN
+PASO 4: PRESENTAR RESUMEN
 
  MEJORES PRÁCTICAS
 
