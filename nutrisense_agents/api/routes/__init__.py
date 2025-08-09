@@ -3,6 +3,7 @@ from nutrisense_agents.api.routes.nutrition_plan_route import router as nutritio
 from nutrisense_agents.api.routes.food_analysis_route import router as food_analysis_router
 from nutrisense_agents.api.routes.user_nutrition_profile_route import router as user_profile_router
 from nutrisense_agents.api.routes.inventory_route import router as inventory_router
+from nutrisense_agents.api.routes.react_agent_route import router as react_agent_router
 
 # from nutrisense_agents.api.routes.macronutrient_route import router as macronutrient_router  # NO UTILIZADO
 
@@ -13,5 +14,6 @@ router.include_router(nutrition_plan_router, prefix="/api")
 router.include_router(food_analysis_router, prefix="/api")
 router.include_router(user_profile_router, prefix="/api")
 router.include_router(inventory_router, prefix="/api")
+router.include_router(react_agent_router, prefix="/api")
 # router.include_router(macronutrient_router, prefix="/api")  # NO UTILIZADO
 
