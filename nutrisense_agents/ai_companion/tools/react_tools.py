@@ -122,15 +122,24 @@ def get_user_inventory_tool(*, config: RunnableConfig):
     return st.get_user_inventory(user_uuid)
 
 @tool
-def check_expiring_ingredients_tool(*, config: RunnableConfig):
+def check_expiring_ingredients_tool(*, days_ahead: int = 0, days_behind: int = 0, config: RunnableConfig):
     """
-    Devuelve los ingredientes del inventario que vencen HOY.
-    Excluye ingredientes ya vencidos o que vencen después.
+    Consulta el inventario del usuario y devuelve ingredientes según su fecha de vencimiento.
+
+    - expired: vencidos en los últimos `days_behind` días.
+    - expiring_today: vencen exactamente hoy.
+    - expiring_soon: vencen en los próximos `days_ahead` días.
+
+    Ejemplos:
+    - "Qué alimentos vencen hoy?" → days_ahead=0, days_behind=0
+    - "Qué alimentos ya vencieron?" → days_ahead=0, days_behind=30
+    - "Qué alimentos vencen en 2 días?" → days_ahead=2, days_behind=0
     """
     user_uuid = config.get("configurable", {}).get("user_uuid")
     if not user_uuid:
         raise KeyError("user_uuid")
-    return st.get_ingredients_expiring_today(user_uuid)
+
+    return st.get_ingredients_expiry_range(user_uuid, days_ahead, days_behind)
 
 @tool
 def suggest_recipes_from_stock_tool(*, config: RunnableConfig):
@@ -154,6 +163,23 @@ def generate_shopping_list_tool(*, recipe_ids: list[int], config: RunnableConfig
         raise KeyError("user_uuid")
     return st.generate_shopping_list(user_uuid, recipe_ids)
 
+@tool
+def suggest_recipes_for_expiring_tool(*, days_ahead: int = 3, config: RunnableConfig):
+    """
+    Sugiere recetas priorizando los ingredientes que están por vencer en los próximos `days_ahead` días.
+    Ordena las recetas de forma que primero aparezcan las que usan ingredientes con fecha más próxima
+    y mayor porcentaje de coincidencia.
+
+    Args:
+        days_ahead (int): rango de días hacia adelante para considerar "por vencer".
+    """
+    user_uuid = config.get("configurable", {}).get("user_uuid")
+    if not user_uuid:
+        raise KeyError("user_uuid")
+
+    return st.get_suggested_recipes_by_expiring_ingredients(user_uuid, days_ahead)
+
+
 TOOLS = [
     add_planned_meal_tool,
     create_meal_plan_tool,
@@ -163,6 +189,7 @@ TOOLS = [
     get_user_inventory_tool,
     check_expiring_ingredients_tool,
     suggest_recipes_from_stock_tool,
-    generate_shopping_list_tool
+    generate_shopping_list_tool,
+    suggest_recipes_for_expiring_tool
 ]
 

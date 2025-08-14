@@ -730,17 +730,20 @@ class SupabaseTools:
             log.error(f"Error en get_user_inventory: {e}")
             return []
 
-    def get_ingredients_expiring_today(self, user_uuid: str) -> list:
+    def get_ingredients_expiry_range(self, user_uuid: str, days_ahead: int = 3, days_behind: int = 0) -> dict:
         """
-        Devuelve los ingredientes del inventario que vencen exactamente HOY.
-        Excluye ingredientes ya vencidos o que vencen más adelante.
+        Devuelve ingredientes del inventario agrupados en:
+        - expired: vencidos en los últimos `days_behind` días
+        - expiring_today: vencen exactamente hoy
+        - expiring_soon: vencen en los próximos `days_ahead` días
         """
         try:
             inventory = self.get_user_inventory(user_uuid)
 
             today = datetime.today().date()
 
-            result = []
+            result = {"expired": [], "expiring_today": [], "expiring_soon": []}
+            
             for item in inventory:
                 expiry_raw = item.get("expiry_date")
                 if not expiry_raw:
@@ -751,14 +754,20 @@ class SupabaseTools:
                 except ValueError:
                     continue
 
-                if expiry_date == today:
-                    result.append(item)
+                delta_days = (expiry_date - today).days
+
+                if delta_days < 0 and abs(delta_days) <= days_behind:
+                    result["expired"].append(item)
+                elif delta_days == 0:
+                    result["expiring_today"].append(item)
+                elif 0 < delta_days <= days_ahead:
+                    result["expiring_soon"].append(item)
 
             return result
 
         except Exception as e:
-            log.error(f"Error en get_ingredients_expiring_today: {e}")
-            return []
+            log.error(f"Error en get_ingredients_by_expiry_range: {e}")
+            return {"expired": [], "expiring_today": [], "expiring_soon": []}
 
     def get_suggested_recipes_by_inventory(self, user_uuid: str) -> list:
         """
@@ -913,4 +922,101 @@ class SupabaseTools:
 
         except Exception as e:
             log.error(f" Error en generate_shopping_list: {e}")
+            return []
+
+    def get_suggested_recipes_by_expiring_ingredients(self, user_uuid: str, days_ahead: int = 3) -> list:
+        """
+        Sugiere recetas usando ingredientes que vencen pronto (en `days_ahead` días).
+        Prioriza recetas que:
+        1. Usen ingredientes con fecha más próxima de vencimiento.
+        2. Tengan mayor porcentaje de match de ingredientes próximos a vencer.
+        """
+        try:
+            today = datetime.today().date()
+
+            # 1. Obtener inventario y filtrar por próximos a vencer
+            inventory = self.get_user_inventory(user_uuid)
+            expiring_items = []
+            for item in inventory:
+                expiry_raw = item.get("expiry_date")
+                if not expiry_raw:
+                    continue
+
+                try:
+                    expiry_date = datetime.strptime(expiry_raw[:10], "%Y-%m-%d").date()
+                except ValueError:
+                    continue
+
+                delta_days = (expiry_date - today).days
+                if 0 < delta_days <= days_ahead:
+                    expiring_items.append({
+                        "ingredient_id": item["ingredient_id"],
+                        "ingredient_name": item["name"],
+                        "expiry_date": expiry_date
+                    })
+
+            if not expiring_items:
+                return []
+
+            expiring_map = {i["ingredient_id"]: i for i in expiring_items}
+
+            # 2. Obtener todas las recetas y sus ingredientes
+            recipe_ingredients = (
+                self.sb.table("recipe_ingredients")
+                .select("recipe_id, ingredient_id, quantity, unit, recipes(title), ingredients(name)")
+                .execute()
+            ).data or []
+
+            # 3. Agrupar por receta
+            recipes_map = {}
+            for ri in recipe_ingredients:
+                recipe_id = ri["recipe_id"]
+                recipe_title = ri["recipes"]["title"]
+                ingredient_id = ri["ingredient_id"]
+                ingredient_name = ri["ingredients"]["name"]
+
+                if recipe_id not in recipes_map:
+                    recipes_map[recipe_id] = {
+                        "title": recipe_title,
+                        "ingredients": []
+                    }
+
+                recipes_map[recipe_id]["ingredients"].append({
+                    "ingredient_id": ingredient_id,
+                    "ingredient_name": ingredient_name
+                })
+
+            # 4. Calcular match solo con ingredientes que vencen pronto
+            suggested = []
+            for recipe_id, recipe in recipes_map.items():
+                total_expiring_ingredients = len(expiring_items)
+                matching_expiring = [
+                    ing for ing in recipe["ingredients"]
+                    if ing["ingredient_id"] in expiring_map
+                ]
+
+                if not matching_expiring:
+                    continue  # Saltar si la receta no usa ingredientes por vencer
+
+                match_percent = int((len(matching_expiring) / total_expiring_ingredients) * 100)
+
+                # Ordenar internamente por fecha de vencimiento más próxima
+                closest_expiry = min(
+                    expiring_map[ing["ingredient_id"]]["expiry_date"] for ing in matching_expiring
+                )
+
+                suggested.append({
+                    "title": recipe["title"],
+                    "match_percent": match_percent,
+                    "matching_expiring_ingredients": [ing["ingredient_name"] for ing in matching_expiring],
+                    "closest_expiry": closest_expiry.isoformat()
+                })
+
+            # 5. Orden final: primero por fecha más próxima, luego por % de match
+            suggested.sort(key=lambda x: (x["closest_expiry"], -x["match_percent"]))
+
+            return suggested
+
+        except Exception as e:
+            log.error(f"Error en get_suggested_recipes_by_expiring_ingredients: {e}")
             return []
